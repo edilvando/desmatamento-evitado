@@ -15,7 +15,8 @@ import desmatamentoData from "@/data/desmatamento.json";
 const HERO_IMG = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028375704/duTvPYuJ7tMWZ778dehMaL/hero-amazonia-7RADVFFLPdKKonoZx4vaUp.webp";
 
 const biomasMT = ["Todos", "Amazônia", "Cerrado", "Amazônia/Cerrado"];
-const ANOS = ["2016","2017","2018","2019","2020","2021","2022","2023","2024"];
+const ANOS = ["2008","2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021","2022","2023","2024"];
+const PAGE_SIZE = 20;
 
 export default function MatoGrosso() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -24,6 +25,7 @@ export default function MatoGrosso() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [selectedMunicipio, setSelectedMunicipio] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState("2024");
+  const [page, setPage] = useState(0);
   const detailRef = useRef<HTMLDivElement>(null);
 
   const municipios = desmatamentoData.municipios_mt;
@@ -147,7 +149,7 @@ export default function MatoGrosso() {
             Mato Grosso — Municípios
           </h1>
           <p className="text-base mt-2" style={{ color: "rgba(255,255,255,0.8)", maxWidth: "600px" }}>
-            Dados detalhados de 26 municípios com desmatamento, cobertura florestal e áreas protegidas.
+            Dados oficiais PRODES/INPE de todos os 141 municípios, com série histórica de 2008 a 2024.
           </p>
         </div>
       </section>
@@ -271,7 +273,7 @@ export default function MatoGrosso() {
                   <h3 className="text-base font-bold" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
                     Evolução — {biomaLabel}
                   </h3>
-                  <p className="text-sm" style={{ color: "#7a7568" }}>Soma dos municípios, 2016 a 2024</p>
+                  <p className="text-sm" style={{ color: "#7a7568" }}>Soma dos municípios, 2008 a 2024</p>
                 </div>
                 <div className="px-3 pb-3">
                   <ResponsiveContainer width="100%" height={200}>
@@ -450,7 +452,7 @@ export default function MatoGrosso() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((m) => {
+                  {filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE).map((m) => {
                     const val = m.desmatamento_anual[selectedYear as keyof typeof m.desmatamento_anual] || 0;
                     const isActive = selectedMunicipio === m.nome;
                     return (
@@ -498,6 +500,54 @@ export default function MatoGrosso() {
                 </tbody>
               </table>
             </div>
+
+            {/* Paginação */}
+            {filtered.length > PAGE_SIZE && (
+              <div className="flex items-center justify-between px-4 py-3" style={{ borderTop: "1px solid #e8e5dd" }}>
+                <p className="text-xs" style={{ color: "#7a7568" }}>
+                  Mostrando {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filtered.length)} de {filtered.length} municípios
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setPage(Math.max(0, page - 1))}
+                    disabled={page === 0}
+                    className="px-3 py-1.5 rounded-md text-xs font-medium transition-all"
+                    style={{
+                      background: page === 0 ? "#f4f3ee" : "#2E7D32",
+                      color: page === 0 ? "#9a958e" : "#fff",
+                      cursor: page === 0 ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    Anterior
+                  </button>
+                  {Array.from({ length: Math.ceil(filtered.length / PAGE_SIZE) }, (_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setPage(i)}
+                      className="w-8 h-8 rounded-md text-xs font-medium transition-all"
+                      style={{
+                        background: page === i ? "#2E7D32" : "#f4f3ee",
+                        color: page === i ? "#fff" : "#5a5448",
+                      }}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setPage(Math.min(Math.ceil(filtered.length / PAGE_SIZE) - 1, page + 1))}
+                    disabled={page >= Math.ceil(filtered.length / PAGE_SIZE) - 1}
+                    className="px-3 py-1.5 rounded-md text-xs font-medium transition-all"
+                    style={{
+                      background: page >= Math.ceil(filtered.length / PAGE_SIZE) - 1 ? "#f4f3ee" : "#2E7D32",
+                      color: page >= Math.ceil(filtered.length / PAGE_SIZE) - 1 ? "#9a958e" : "#fff",
+                      cursor: page >= Math.ceil(filtered.length / PAGE_SIZE) - 1 ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    Próximo
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </section>

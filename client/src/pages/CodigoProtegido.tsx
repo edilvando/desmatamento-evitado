@@ -22,7 +22,7 @@ const secoesCodigo: CodeSection[] = [
     titulo: "Geração dos Dados",
     arquivo: "generate_data.py",
     linguagem: "Python",
-    descricao: "Script Python que gera os dados JSON utilizados pelo sistema. Contém os dados de desmatamento por estado (2008-2024), municípios do Mato Grosso (2016-2024), cálculo do desmatamento evitado, metadados das fontes de dados e publicações científicas. Os dados são baseados em fontes públicas do PRODES/INPE, MapBiomas e Global Forest Change.",
+    descricao: "Script Python que gera os dados JSON utilizados pelo sistema. Contém os dados de desmatamento por estado (2008-2024), todos os 141 municípios do Mato Grosso (2008-2024) com dados oficiais do PRODES/TerraBrasilis, cálculo do desmatamento evitado pela metodologia Hectares Indicator, metadados das fontes de dados e publicações científicas.",
     codigo: `#!/usr/bin/env python3
 """
 generate_data.py — Geração dos dados para o Sistema de Desmatamento Evitado
@@ -251,11 +251,11 @@ const serieNacional = anos.map((ano) => ({
     linguagem: "TypeScript/React",
     descricao: "Análise municipal detalhada do Mato Grosso. Inclui indicadores resumo (desmatamento total, cobertura florestal média, áreas protegidas), ranking dos top 10 municípios com gráfico horizontal, tabela completa com barras de progresso para cobertura florestal, e painel de detalhes por município.",
     codigo: `// MatoGrosso.tsx — Visão detalhada por municípios do MT
-// 26 municípios com dados de:
+// 141 municípios com dados oficiais PRODES/TerraBrasilis:
 // - Área total (km²)
 // - Cobertura florestal (%)
 // - Áreas protegidas (km²)
-// - Série de desmatamento (2016-2024)
+// - Série de desmatamento (2008-2024)
 // - Desmatamento evitado (esperado vs observado)
 
 // Ranking horizontal com cores por gravidade:
@@ -292,7 +292,7 @@ const serieNacional = anos.map((ano) => ({
     titulo: "Estrutura de Dados JSON",
     arquivo: "client/src/data/desmatamento.json",
     linguagem: "JSON",
-    descricao: "Estrutura do arquivo de dados principal. Contém três seções: 'estados' (27 UFs com série 2008-2024), 'municipios_mt' (26 municípios com dados detalhados), e 'metadata' (fontes de dados e publicações com URLs).",
+    descricao: "Estrutura do arquivo de dados principal. Contém três seções: 'estados' (27 UFs com série 2008-2024), 'municipios_mt' (141 municípios com dados oficiais PRODES 2008-2024), e 'metadata' (fontes de dados e publicações com URLs).",
     codigo: `{
   "estados": [
     {

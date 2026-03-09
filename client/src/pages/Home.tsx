@@ -260,7 +260,7 @@ export default function Home() {
                   O Mato Grosso é o segundo estado com maior desmatamento acumulado na Amazônia Legal, com mais de 156 mil km² de floresta convertida. A análise municipal permite identificar os focos de pressão e as áreas onde intervenções de conservação têm sido mais efetivas.
                 </p>
                 <p className="text-base leading-relaxed mb-6" style={{ color: "#5a5448", fontFamily: "'Source Serif 4', serif", lineHeight: 1.8 }}>
-                  Explore dados detalhados de 26 municípios, incluindo cobertura florestal, áreas protegidas e cálculo do desmatamento evitado pela metodologia ACEU.
+                  Explore dados oficiais PRODES/INPE de todos os 141 municípios, incluindo cobertura florestal e cálculo do desmatamento evitado pela metodologia ACEU, com série histórica de 2008 a 2024.
                 </p>
                 <Link href="/mato-grosso" className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold no-underline transition-all hover:shadow-md" style={{ background: "#2E7D32", color: "#fff" }}>
                   Explorar Municípios <ArrowRight size={16} />

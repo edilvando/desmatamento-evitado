@@ -1,37 +1,21 @@
-# TODO - Melhorias v3
+# TODO - Expansão 141 Municípios do MT
 
-## Filtro por Bioma nos Mapas
-- [ ] Mapa do Brasil: filtro por bioma (destaca/opacidade nos estados do bioma)
-- [ ] Mapa do MT: filtro por bioma (Amazônia, Cerrado, Amazônia/Cerrado)
+## Coleta de Dados
+- [ ] Obter lista completa dos 141 municípios do MT com códigos IBGE
+- [ ] Coletar dados PRODES de desmatamento por município via TerraBrasilis API
+- [ ] Série histórica 2008-2024 para cada município
 
-## Seletor de Anos nas Tabelas
-- [ ] Tabela de Estados: seletor de ano (muda coluna de desmatamento)
-- [ ] Tabela de MT: seletor de ano já existe, integrar melhor
-- [ ] Gráficos de barras mudam conforme ano selecionado
+## Processamento
+- [ ] Gerar JSON com todos os 141 municípios
+- [ ] Calcular desmatamento evitado para cada município
+- [ ] Classificar biomas por município (Amazônia, Cerrado, Pantanal)
 
----
-# CONCLUÍDO - Melhorias v2
+## Sistema Web
+- [ ] Atualizar MatoGrossoMap para renderizar 141 municípios
+- [ ] Adicionar busca/filtro para facilitar navegação entre municípios
+- [ ] Ajustar performance para lidar com mais dados
 
-## Mapa Interativo
-- [ ] Criar componente de mapa SVG do Brasil com paths dos estados
-- [ ] Colorir estados por intensidade de desmatamento (escala de cor)
-- [ ] Adicionar tooltip com dados ao passar mouse sobre estado
-- [ ] Clicar no estado abre detalhes
-
-## Timeline Animada
-- [ ] Slider de ano (2008-2024) com botão play/pause
-- [ ] Animação automática que percorre os anos
-- [ ] Mapa muda cores conforme o ano selecionado
-- [ ] Indicadores numéricos acompanham o ano
-
-## Mapa do Mato Grosso por Municípios
-- [ ] Baixar GeoJSON dos municípios do MT
-- [ ] Criar mapa SVG do MT com municípios coloridos por desmatamento
-- [ ] Timeline animada por ano (2016-2024)
-- [ ] Tooltip e clique para detalhes do município
-
-## Página de Estados - Série Histórica
-- [ ] Ao clicar "Ver" na tabela, abrir painel com gráficos do estado
-- [ ] Gráfico de barras com série histórica completa
-- [ ] Gráfico de linhas com desmatamento evitado (esperado vs observado)
-- [ ] Transição suave entre estados
+## Testes
+- [ ] Verificar dados de municípios conhecidos contra fontes oficiais
+- [ ] Testar filtros por bioma com os novos municípios
+- [ ] Checkpoint final
