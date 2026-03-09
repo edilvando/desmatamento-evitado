@@ -1,0 +1,4607 @@
+{
+  "metadata": {
+    "titulo": "Sistema de Desmatamento Evitado - Embrapa",
+    "versao": "1.0.0",
+    "criador": "Edilvando Pereira Eufrazio",
+    "instituicao": "Embrapa Agrossilvipastoril (CPAMT)",
+    "metodologia": "Hectares Indicator (ACEU) - Tipper & Morel, 2016",
+    "data_atualizacao": "2026-03-08",
+    "fontes_dados": [
+      {
+        "nome": "PRODES/INPE",
+        "url": "https://terrabrasilis.dpi.inpe.br/",
+        "descricao": "Taxas anuais de desmatamento por corte raso"
+      },
+      {
+        "nome": "Global Forest Change",
+        "url": "https://glad.earthengine.app/view/global-forest-change",
+        "descricao": "Cobertura florestal e mudanças (Hansen et al., 2013)"
+      },
+      {
+        "nome": "MapBiomas",
+        "url": "https://brasil.mapbiomas.org/",
+        "descricao": "Mapas anuais de cobertura e uso da terra"
+      },
+      {
+        "nome": "IBGE",
+        "url": "https://www.ibge.gov.br/geociencias/",
+        "descricao": "Malhas territoriais e dados geográficos"
+      },
+      {
+        "nome": "ICMBio/MMA",
+        "url": "https://www.gov.br/icmbio/pt-br/assuntos/dados_geoespaciais",
+        "descricao": "Unidades de Conservação e áreas protegidas"
+      },
+      {
+        "nome": "DNIT",
+        "url": "https://servicos.dnit.gov.br/dadosabertos/",
+        "descricao": "Malha rodoviária federal"
+      },
+      {
+        "nome": "ANM",
+        "url": "https://dados.gov.br/",
+        "descricao": "Áreas de mineração e recursos extraíveis"
+      }
+    ],
+    "publicacoes": [
+      {
+        "titulo": "Aplicação da metodologia de Hectare Indicator para estimativa de desmatamento evitado no bioma Amazônia",
+        "autores": "Vendrusculo, L. G.; Castagna, D.; Zolin, C. A.; Costa, C. A. da; Rodrigues, R. de A. R.",
+        "ano": 2019,
+        "tipo": "Boletim de Pesquisa e Desenvolvimento 46",
+        "instituicao": "Embrapa Informática Agropecuária",
+        "url": "https://www.infoteca.cnptia.embrapa.br/infoteca/bitstream/doc/1117042/1/Boletim46.pdf"
+      },
+      {
+        "titulo": "Definição de linha base para o índice de desmatamento evitado no estado do Mato Grosso no Bioma Amazônico",
+        "autores": "Costa, C. A. da; Castagna, D.; Zolin, C. A.; Vendrusculo, L. G.; Rodrigues, R. de A. R.",
+        "ano": 2018,
+        "tipo": "Artigo em anais de congresso",
+        "instituicao": "Embrapa Agrossilvipastoril",
+        "url": "https://www.alice.cnptia.embrapa.br/alice/handle/doc/1140329"
+      },
+      {
+        "titulo": "Definição de linha base para o índice de desmatamento evitado no estado do Pará no bioma Amazônia",
+        "autores": "Costa, C. A. da; Castagna, D.; Zolin, C. A.; Vendrusculo, L. G.; Rodrigues, R. de A. R.",
+        "ano": 2018,
+        "tipo": "Artigo em anais de congresso",
+        "instituicao": "Embrapa Agrossilvipastoril",
+        "url": "https://www.embrapa.br/busca-de-publicacoes/-/publicacao/1140326/"
+      },
+      {
+        "titulo": "Hectares Indicator Methods and Guidance Version 2.0",
+        "autores": "Tipper, R.; Morel, A.",
+        "ano": 2016,
+        "tipo": "Guia Metodológico",
+        "instituicao": "Ecometrica",
+        "url": "http://www.ecometrica.com/wp-content/uploads/2019/10/Hectares-Indicator-Methods-and-Guidance-V2.0.pdf"
+      },
+      {
+        "titulo": "Estudo usa dados espaciais para classificar risco de desmatamento no Cerrado",
+        "autores": "Embrapa",
+        "ano": 2022,
+        "tipo": "Notícia",
+        "instituicao": "Embrapa",
+        "url": "https://www.embrapa.br/busca-de-noticias/-/noticia/75545249/"
+      },
+      {
+        "titulo": "High-Resolution Global Maps of 21st-Century Forest Cover Change",
+        "autores": "Hansen, M. C. et al.",
+        "ano": 2013,
+        "tipo": "Artigo Científico - Science",
+        "instituicao": "University of Maryland",
+        "url": "https://www.science.org/doi/10.1126/science.1244693"
+      }
+    ]
+  },
+  "estados": [
+    {
+      "nome": "Acre",
+      "sigla": "AC",
+      "bioma_principal": "Amazônia",
+      "area_estado_km2": 164123,
+      "desmatamento_anual": {
+        "2008": 254,
+        "2009": 167,
+        "2010": 259,
+        "2011": 280,
+        "2012": 305,
+        "2013": 221,
+        "2014": 309,
+        "2015": 264,
+        "2016": 372,
+        "2017": 257,
+        "2018": 444,
+        "2019": 682,
+        "2020": 706,
+        "2021": 889,
+        "2022": 767,
+        "2023": 601,
+        "2024": 394
+      },
+      "desmatamento_acumulado_km2": 18882,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 226.7,
+          "observado": 280,
+          "evitado": -53.3,
+          "percentual_evitado": -23.5
+        },
+        "2012": {
+          "esperado": 235.3,
+          "observado": 305,
+          "evitado": -69.7,
+          "percentual_evitado": -29.6
+        },
+        "2013": {
+          "esperado": 281.3,
+          "observado": 221,
+          "evitado": 60.3,
+          "percentual_evitado": 21.4
+        },
+        "2014": {
+          "esperado": 268.7,
+          "observado": 309,
+          "evitado": -40.3,
+          "percentual_evitado": -15.0
+        },
+        "2015": {
+          "esperado": 278.3,
+          "observado": 264,
+          "evitado": 14.3,
+          "percentual_evitado": 5.1
+        },
+        "2016": {
+          "esperado": 264.7,
+          "observado": 372,
+          "evitado": -107.3,
+          "percentual_evitado": -40.6
+        },
+        "2017": {
+          "esperado": 315.0,
+          "observado": 257,
+          "evitado": 58.0,
+          "percentual_evitado": 18.4
+        },
+        "2018": {
+          "esperado": 297.7,
+          "observado": 444,
+          "evitado": -146.3,
+          "percentual_evitado": -49.2
+        },
+        "2019": {
+          "esperado": 357.7,
+          "observado": 682,
+          "evitado": -324.3,
+          "percentual_evitado": -90.7
+        },
+        "2020": {
+          "esperado": 461.0,
+          "observado": 706,
+          "evitado": -245.0,
+          "percentual_evitado": -53.1
+        },
+        "2021": {
+          "esperado": 610.7,
+          "observado": 889,
+          "evitado": -278.3,
+          "percentual_evitado": -45.6
+        },
+        "2022": {
+          "esperado": 759.0,
+          "observado": 767,
+          "evitado": -8.0,
+          "percentual_evitado": -1.1
+        },
+        "2023": {
+          "esperado": 787.3,
+          "observado": 601,
+          "evitado": 186.3,
+          "percentual_evitado": 23.7
+        },
+        "2024": {
+          "esperado": 752.3,
+          "observado": 394,
+          "evitado": 358.3,
+          "percentual_evitado": 47.6
+        }
+      }
+    },
+    {
+      "nome": "Amazonas",
+      "sigla": "AM",
+      "bioma_principal": "Amazônia",
+      "area_estado_km2": 1559168,
+      "desmatamento_anual": {
+        "2008": 604,
+        "2009": 405,
+        "2010": 595,
+        "2011": 502,
+        "2012": 523,
+        "2013": 583,
+        "2014": 500,
+        "2015": 712,
+        "2016": 1129,
+        "2017": 1001,
+        "2018": 1045,
+        "2019": 1434,
+        "2020": 1512,
+        "2021": 2347,
+        "2022": 2213,
+        "2023": 2048,
+        "2024": 1257
+      },
+      "desmatamento_acumulado_km2": 37196,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 534.7,
+          "observado": 502,
+          "evitado": 32.7,
+          "percentual_evitado": 6.1
+        },
+        "2012": {
+          "esperado": 500.7,
+          "observado": 523,
+          "evitado": -22.3,
+          "percentual_evitado": -4.5
+        },
+        "2013": {
+          "esperado": 540.0,
+          "observado": 583,
+          "evitado": -43.0,
+          "percentual_evitado": -8.0
+        },
+        "2014": {
+          "esperado": 536.0,
+          "observado": 500,
+          "evitado": 36.0,
+          "percentual_evitado": 6.7
+        },
+        "2015": {
+          "esperado": 535.3,
+          "observado": 712,
+          "evitado": -176.7,
+          "percentual_evitado": -33.0
+        },
+        "2016": {
+          "esperado": 598.3,
+          "observado": 1129,
+          "evitado": -530.7,
+          "percentual_evitado": -88.7
+        },
+        "2017": {
+          "esperado": 780.3,
+          "observado": 1001,
+          "evitado": -220.7,
+          "percentual_evitado": -28.3
+        },
+        "2018": {
+          "esperado": 947.3,
+          "observado": 1045,
+          "evitado": -97.7,
+          "percentual_evitado": -10.3
+        },
+        "2019": {
+          "esperado": 1058.3,
+          "observado": 1434,
+          "evitado": -375.7,
+          "percentual_evitado": -35.5
+        },
+        "2020": {
+          "esperado": 1160.0,
+          "observado": 1512,
+          "evitado": -352.0,
+          "percentual_evitado": -30.3
+        },
+        "2021": {
+          "esperado": 1330.3,
+          "observado": 2347,
+          "evitado": -1016.7,
+          "percentual_evitado": -76.4
+        },
+        "2022": {
+          "esperado": 1764.3,
+          "observado": 2213,
+          "evitado": -448.7,
+          "percentual_evitado": -25.4
+        },
+        "2023": {
+          "esperado": 2024.0,
+          "observado": 2048,
+          "evitado": -24.0,
+          "percentual_evitado": -1.2
+        },
+        "2024": {
+          "esperado": 2202.7,
+          "observado": 1257,
+          "evitado": 945.7,
+          "percentual_evitado": 42.9
+        }
+      }
+    },
+    {
+      "nome": "Amapá",
+      "sigla": "AP",
+      "bioma_principal": "Amazônia",
+      "area_estado_km2": 142829,
+      "desmatamento_anual": {
+        "2008": 100,
+        "2009": 70,
+        "2010": 53,
+        "2011": 66,
+        "2012": 27,
+        "2013": 23,
+        "2014": 31,
+        "2015": 25,
+        "2016": 17,
+        "2017": 24,
+        "2018": 24,
+        "2019": 32,
+        "2020": 34,
+        "2021": 20,
+        "2022": 40,
+        "2023": 54,
+        "2024": 28
+      },
+      "desmatamento_acumulado_km2": 1731,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 74.3,
+          "observado": 66,
+          "evitado": 8.3,
+          "percentual_evitado": 11.2
+        },
+        "2012": {
+          "esperado": 63.0,
+          "observado": 27,
+          "evitado": 36.0,
+          "percentual_evitado": 57.1
+        },
+        "2013": {
+          "esperado": 48.7,
+          "observado": 23,
+          "evitado": 25.7,
+          "percentual_evitado": 52.7
+        },
+        "2014": {
+          "esperado": 38.7,
+          "observado": 31,
+          "evitado": 7.7,
+          "percentual_evitado": 19.8
+        },
+        "2015": {
+          "esperado": 27.0,
+          "observado": 25,
+          "evitado": 2.0,
+          "percentual_evitado": 7.4
+        },
+        "2016": {
+          "esperado": 26.3,
+          "observado": 17,
+          "evitado": 9.3,
+          "percentual_evitado": 35.4
+        },
+        "2017": {
+          "esperado": 24.3,
+          "observado": 24,
+          "evitado": 0.3,
+          "percentual_evitado": 1.4
+        },
+        "2018": {
+          "esperado": 22.0,
+          "observado": 24,
+          "evitado": -2.0,
+          "percentual_evitado": -9.1
+        },
+        "2019": {
+          "esperado": 21.7,
+          "observado": 32,
+          "evitado": -10.3,
+          "percentual_evitado": -47.7
+        },
+        "2020": {
+          "esperado": 26.7,
+          "observado": 34,
+          "evitado": -7.3,
+          "percentual_evitado": -27.5
+        },
+        "2021": {
+          "esperado": 30.0,
+          "observado": 20,
+          "evitado": 10.0,
+          "percentual_evitado": 33.3
+        },
+        "2022": {
+          "esperado": 28.7,
+          "observado": 40,
+          "evitado": -11.3,
+          "percentual_evitado": -39.5
+        },
+        "2023": {
+          "esperado": 31.3,
+          "observado": 54,
+          "evitado": -22.7,
+          "percentual_evitado": -72.3
+        },
+        "2024": {
+          "esperado": 38.0,
+          "observado": 28,
+          "evitado": 10.0,
+          "percentual_evitado": 26.3
+        }
+      }
+    },
+    {
+      "nome": "Maranhão",
+      "sigla": "MA",
+      "bioma_principal": "Amazônia/Cerrado",
+      "area_estado_km2": 331937,
+      "desmatamento_anual": {
+        "2008": 1271,
+        "2009": 828,
+        "2010": 712,
+        "2011": 396,
+        "2012": 269,
+        "2013": 403,
+        "2014": 257,
+        "2015": 209,
+        "2016": 258,
+        "2017": 265,
+        "2018": 253,
+        "2019": 237,
+        "2020": 355,
+        "2021": 349,
+        "2022": 296,
+        "2023": 227,
+        "2024": 168
+      },
+      "desmatamento_acumulado_km2": 27197,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 937.0,
+          "observado": 396,
+          "evitado": 541.0,
+          "percentual_evitado": 57.7
+        },
+        "2012": {
+          "esperado": 645.3,
+          "observado": 269,
+          "evitado": 376.3,
+          "percentual_evitado": 58.3
+        },
+        "2013": {
+          "esperado": 459.0,
+          "observado": 403,
+          "evitado": 56.0,
+          "percentual_evitado": 12.2
+        },
+        "2014": {
+          "esperado": 356.0,
+          "observado": 257,
+          "evitado": 99.0,
+          "percentual_evitado": 27.8
+        },
+        "2015": {
+          "esperado": 309.7,
+          "observado": 209,
+          "evitado": 100.7,
+          "percentual_evitado": 32.5
+        },
+        "2016": {
+          "esperado": 289.7,
+          "observado": 258,
+          "evitado": 31.7,
+          "percentual_evitado": 10.9
+        },
+        "2017": {
+          "esperado": 241.3,
+          "observado": 265,
+          "evitado": -23.7,
+          "percentual_evitado": -9.8
+        },
+        "2018": {
+          "esperado": 244.0,
+          "observado": 253,
+          "evitado": -9.0,
+          "percentual_evitado": -3.7
+        },
+        "2019": {
+          "esperado": 258.7,
+          "observado": 237,
+          "evitado": 21.7,
+          "percentual_evitado": 8.4
+        },
+        "2020": {
+          "esperado": 251.7,
+          "observado": 355,
+          "evitado": -103.3,
+          "percentual_evitado": -41.1
+        },
+        "2021": {
+          "esperado": 281.7,
+          "observado": 349,
+          "evitado": -67.3,
+          "percentual_evitado": -23.9
+        },
+        "2022": {
+          "esperado": 313.7,
+          "observado": 296,
+          "evitado": 17.7,
+          "percentual_evitado": 5.6
+        },
+        "2023": {
+          "esperado": 333.3,
+          "observado": 227,
+          "evitado": 106.3,
+          "percentual_evitado": 31.9
+        },
+        "2024": {
+          "esperado": 290.7,
+          "observado": 168,
+          "evitado": 122.7,
+          "percentual_evitado": 42.2
+        }
+      }
+    },
+    {
+      "nome": "Mato Grosso",
+      "sigla": "MT",
+      "bioma_principal": "Amazônia/Cerrado",
+      "area_estado_km2": 903378,
+      "desmatamento_anual": {
+        "2008": 3258,
+        "2009": 1049,
+        "2010": 871,
+        "2011": 1120,
+        "2012": 757,
+        "2013": 1139,
+        "2014": 1075,
+        "2015": 1601,
+        "2016": 1489,
+        "2017": 1561,
+        "2018": 1490,
+        "2019": 1685,
+        "2020": 1779,
+        "2021": 2263,
+        "2022": 1927,
+        "2023": 2048,
+        "2024": 1257
+      },
+      "desmatamento_acumulado_km2": 156976,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 1726.0,
+          "observado": 1120,
+          "evitado": 606.0,
+          "percentual_evitado": 35.1
+        },
+        "2012": {
+          "esperado": 1013.3,
+          "observado": 757,
+          "evitado": 256.3,
+          "percentual_evitado": 25.3
+        },
+        "2013": {
+          "esperado": 916.0,
+          "observado": 1139,
+          "evitado": -223.0,
+          "percentual_evitado": -24.3
+        },
+        "2014": {
+          "esperado": 1005.3,
+          "observado": 1075,
+          "evitado": -69.7,
+          "percentual_evitado": -6.9
+        },
+        "2015": {
+          "esperado": 990.3,
+          "observado": 1601,
+          "evitado": -610.7,
+          "percentual_evitado": -61.7
+        },
+        "2016": {
+          "esperado": 1271.7,
+          "observado": 1489,
+          "evitado": -217.3,
+          "percentual_evitado": -17.1
+        },
+        "2017": {
+          "esperado": 1388.3,
+          "observado": 1561,
+          "evitado": -172.7,
+          "percentual_evitado": -12.4
+        },
+        "2018": {
+          "esperado": 1550.3,
+          "observado": 1490,
+          "evitado": 60.3,
+          "percentual_evitado": 3.9
+        },
+        "2019": {
+          "esperado": 1513.3,
+          "observado": 1685,
+          "evitado": -171.7,
+          "percentual_evitado": -11.3
+        },
+        "2020": {
+          "esperado": 1578.7,
+          "observado": 1779,
+          "evitado": -200.3,
+          "percentual_evitado": -12.7
+        },
+        "2021": {
+          "esperado": 1651.3,
+          "observado": 2263,
+          "evitado": -611.7,
+          "percentual_evitado": -37.0
+        },
+        "2022": {
+          "esperado": 1909.0,
+          "observado": 1927,
+          "evitado": -18.0,
+          "percentual_evitado": -0.9
+        },
+        "2023": {
+          "esperado": 1989.7,
+          "observado": 2048,
+          "evitado": -58.3,
+          "percentual_evitado": -2.9
+        },
+        "2024": {
+          "esperado": 2079.3,
+          "observado": 1257,
+          "evitado": 822.3,
+          "percentual_evitado": 39.5
+        }
+      }
+    },
+    {
+      "nome": "Pará",
+      "sigla": "PA",
+      "bioma_principal": "Amazônia",
+      "area_estado_km2": 1247955,
+      "desmatamento_anual": {
+        "2008": 5607,
+        "2009": 4281,
+        "2010": 3770,
+        "2011": 3008,
+        "2012": 1741,
+        "2013": 2346,
+        "2014": 1887,
+        "2015": 2153,
+        "2016": 2992,
+        "2017": 2413,
+        "2018": 2840,
+        "2019": 4172,
+        "2020": 4899,
+        "2021": 5257,
+        "2022": 4267,
+        "2023": 3025,
+        "2024": 2346
+      },
+      "desmatamento_acumulado_km2": 174532,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 4552.7,
+          "observado": 3008,
+          "evitado": 1544.7,
+          "percentual_evitado": 33.9
+        },
+        "2012": {
+          "esperado": 3686.3,
+          "observado": 1741,
+          "evitado": 1945.3,
+          "percentual_evitado": 52.8
+        },
+        "2013": {
+          "esperado": 2839.7,
+          "observado": 2346,
+          "evitado": 493.7,
+          "percentual_evitado": 17.4
+        },
+        "2014": {
+          "esperado": 2365.0,
+          "observado": 1887,
+          "evitado": 478.0,
+          "percentual_evitado": 20.2
+        },
+        "2015": {
+          "esperado": 1991.3,
+          "observado": 2153,
+          "evitado": -161.7,
+          "percentual_evitado": -8.1
+        },
+        "2016": {
+          "esperado": 2128.7,
+          "observado": 2992,
+          "evitado": -863.3,
+          "percentual_evitado": -40.6
+        },
+        "2017": {
+          "esperado": 2344.0,
+          "observado": 2413,
+          "evitado": -69.0,
+          "percentual_evitado": -2.9
+        },
+        "2018": {
+          "esperado": 2519.3,
+          "observado": 2840,
+          "evitado": -320.7,
+          "percentual_evitado": -12.7
+        },
+        "2019": {
+          "esperado": 2748.3,
+          "observado": 4172,
+          "evitado": -1423.7,
+          "percentual_evitado": -51.8
+        },
+        "2020": {
+          "esperado": 3141.7,
+          "observado": 4899,
+          "evitado": -1757.3,
+          "percentual_evitado": -55.9
+        },
+        "2021": {
+          "esperado": 3970.3,
+          "observado": 5257,
+          "evitado": -1286.7,
+          "percentual_evitado": -32.4
+        },
+        "2022": {
+          "esperado": 4776.0,
+          "observado": 4267,
+          "evitado": 509.0,
+          "percentual_evitado": 10.7
+        },
+        "2023": {
+          "esperado": 4807.7,
+          "observado": 3025,
+          "evitado": 1782.7,
+          "percentual_evitado": 37.1
+        },
+        "2024": {
+          "esperado": 4183.0,
+          "observado": 2346,
+          "evitado": 1837.0,
+          "percentual_evitado": 43.9
+        }
+      }
+    },
+    {
+      "nome": "Rondônia",
+      "sigla": "RO",
+      "bioma_principal": "Amazônia",
+      "area_estado_km2": 237765,
+      "desmatamento_anual": {
+        "2008": 1136,
+        "2009": 482,
+        "2010": 435,
+        "2011": 865,
+        "2012": 773,
+        "2013": 932,
+        "2014": 684,
+        "2015": 1030,
+        "2016": 1376,
+        "2017": 1243,
+        "2018": 1316,
+        "2019": 1257,
+        "2020": 1245,
+        "2021": 1673,
+        "2022": 1590,
+        "2023": 1244,
+        "2024": 525
+      },
+      "desmatamento_acumulado_km2": 67559,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 684.3,
+          "observado": 865,
+          "evitado": -180.7,
+          "percentual_evitado": -26.4
+        },
+        "2012": {
+          "esperado": 594.0,
+          "observado": 773,
+          "evitado": -179.0,
+          "percentual_evitado": -30.1
+        },
+        "2013": {
+          "esperado": 691.0,
+          "observado": 932,
+          "evitado": -241.0,
+          "percentual_evitado": -34.9
+        },
+        "2014": {
+          "esperado": 856.7,
+          "observado": 684,
+          "evitado": 172.7,
+          "percentual_evitado": 20.2
+        },
+        "2015": {
+          "esperado": 796.3,
+          "observado": 1030,
+          "evitado": -233.7,
+          "percentual_evitado": -29.3
+        },
+        "2016": {
+          "esperado": 882.0,
+          "observado": 1376,
+          "evitado": -494.0,
+          "percentual_evitado": -56.0
+        },
+        "2017": {
+          "esperado": 1030.0,
+          "observado": 1243,
+          "evitado": -213.0,
+          "percentual_evitado": -20.7
+        },
+        "2018": {
+          "esperado": 1216.3,
+          "observado": 1316,
+          "evitado": -99.7,
+          "percentual_evitado": -8.2
+        },
+        "2019": {
+          "esperado": 1311.7,
+          "observado": 1257,
+          "evitado": 54.7,
+          "percentual_evitado": 4.2
+        },
+        "2020": {
+          "esperado": 1272.0,
+          "observado": 1245,
+          "evitado": 27.0,
+          "percentual_evitado": 2.1
+        },
+        "2021": {
+          "esperado": 1272.7,
+          "observado": 1673,
+          "evitado": -400.3,
+          "percentual_evitado": -31.5
+        },
+        "2022": {
+          "esperado": 1391.7,
+          "observado": 1590,
+          "evitado": -198.3,
+          "percentual_evitado": -14.3
+        },
+        "2023": {
+          "esperado": 1502.7,
+          "observado": 1244,
+          "evitado": 258.7,
+          "percentual_evitado": 17.2
+        },
+        "2024": {
+          "esperado": 1502.3,
+          "observado": 525,
+          "evitado": 977.3,
+          "percentual_evitado": 65.1
+        }
+      }
+    },
+    {
+      "nome": "Roraima",
+      "sigla": "RR",
+      "bioma_principal": "Amazônia",
+      "area_estado_km2": 224301,
+      "desmatamento_anual": {
+        "2008": 574,
+        "2009": 121,
+        "2010": 256,
+        "2011": 141,
+        "2012": 124,
+        "2013": 170,
+        "2014": 156,
+        "2015": 156,
+        "2016": 202,
+        "2017": 132,
+        "2018": 195,
+        "2019": 617,
+        "2020": 297,
+        "2021": 259,
+        "2022": 431,
+        "2023": 509,
+        "2024": 590
+      },
+      "desmatamento_acumulado_km2": 10225,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 317.0,
+          "observado": 141,
+          "evitado": 176.0,
+          "percentual_evitado": 55.5
+        },
+        "2012": {
+          "esperado": 172.7,
+          "observado": 124,
+          "evitado": 48.7,
+          "percentual_evitado": 28.2
+        },
+        "2013": {
+          "esperado": 173.7,
+          "observado": 170,
+          "evitado": 3.7,
+          "percentual_evitado": 2.1
+        },
+        "2014": {
+          "esperado": 145.0,
+          "observado": 156,
+          "evitado": -11.0,
+          "percentual_evitado": -7.6
+        },
+        "2015": {
+          "esperado": 150.0,
+          "observado": 156,
+          "evitado": -6.0,
+          "percentual_evitado": -4.0
+        },
+        "2016": {
+          "esperado": 160.7,
+          "observado": 202,
+          "evitado": -41.3,
+          "percentual_evitado": -25.7
+        },
+        "2017": {
+          "esperado": 171.3,
+          "observado": 132,
+          "evitado": 39.3,
+          "percentual_evitado": 23.0
+        },
+        "2018": {
+          "esperado": 163.3,
+          "observado": 195,
+          "evitado": -31.7,
+          "percentual_evitado": -19.4
+        },
+        "2019": {
+          "esperado": 176.3,
+          "observado": 617,
+          "evitado": -440.7,
+          "percentual_evitado": -249.9
+        },
+        "2020": {
+          "esperado": 314.7,
+          "observado": 297,
+          "evitado": 17.7,
+          "percentual_evitado": 5.6
+        },
+        "2021": {
+          "esperado": 369.7,
+          "observado": 259,
+          "evitado": 110.7,
+          "percentual_evitado": 29.9
+        },
+        "2022": {
+          "esperado": 391.0,
+          "observado": 431,
+          "evitado": -40.0,
+          "percentual_evitado": -10.2
+        },
+        "2023": {
+          "esperado": 329.0,
+          "observado": 509,
+          "evitado": -180.0,
+          "percentual_evitado": -54.7
+        },
+        "2024": {
+          "esperado": 399.7,
+          "observado": 590,
+          "evitado": -190.3,
+          "percentual_evitado": -47.6
+        }
+      }
+    },
+    {
+      "nome": "Tocantins",
+      "sigla": "TO",
+      "bioma_principal": "Cerrado",
+      "area_estado_km2": 277720,
+      "desmatamento_anual": {
+        "2008": 107,
+        "2009": 61,
+        "2010": 49,
+        "2011": 40,
+        "2012": 52,
+        "2013": 74,
+        "2014": 50,
+        "2015": 57,
+        "2016": 58,
+        "2017": 31,
+        "2018": 25,
+        "2019": 23,
+        "2020": 25,
+        "2021": 23,
+        "2022": 24,
+        "2023": 19,
+        "2024": 7
+      },
+      "desmatamento_acumulado_km2": 8884,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 72.3,
+          "observado": 40,
+          "evitado": 32.3,
+          "percentual_evitado": 44.7
+        },
+        "2012": {
+          "esperado": 50.0,
+          "observado": 52,
+          "evitado": -2.0,
+          "percentual_evitado": -4.0
+        },
+        "2013": {
+          "esperado": 47.0,
+          "observado": 74,
+          "evitado": -27.0,
+          "percentual_evitado": -57.4
+        },
+        "2014": {
+          "esperado": 55.3,
+          "observado": 50,
+          "evitado": 5.3,
+          "percentual_evitado": 9.6
+        },
+        "2015": {
+          "esperado": 58.7,
+          "observado": 57,
+          "evitado": 1.7,
+          "percentual_evitado": 2.8
+        },
+        "2016": {
+          "esperado": 60.3,
+          "observado": 58,
+          "evitado": 2.3,
+          "percentual_evitado": 3.9
+        },
+        "2017": {
+          "esperado": 55.0,
+          "observado": 31,
+          "evitado": 24.0,
+          "percentual_evitado": 43.6
+        },
+        "2018": {
+          "esperado": 48.7,
+          "observado": 25,
+          "evitado": 23.7,
+          "percentual_evitado": 48.6
+        },
+        "2019": {
+          "esperado": 38.0,
+          "observado": 23,
+          "evitado": 15.0,
+          "percentual_evitado": 39.5
+        },
+        "2020": {
+          "esperado": 26.3,
+          "observado": 25,
+          "evitado": 1.3,
+          "percentual_evitado": 5.1
+        },
+        "2021": {
+          "esperado": 24.3,
+          "observado": 23,
+          "evitado": 1.3,
+          "percentual_evitado": 5.5
+        },
+        "2022": {
+          "esperado": 23.7,
+          "observado": 24,
+          "evitado": -0.3,
+          "percentual_evitado": -1.4
+        },
+        "2023": {
+          "esperado": 24.0,
+          "observado": 19,
+          "evitado": 5.0,
+          "percentual_evitado": 20.8
+        },
+        "2024": {
+          "esperado": 22.0,
+          "observado": 7,
+          "evitado": 15.0,
+          "percentual_evitado": 68.2
+        }
+      }
+    },
+    {
+      "nome": "Goiás",
+      "sigla": "GO",
+      "bioma_principal": "Cerrado",
+      "area_estado_km2": 340242,
+      "desmatamento_anual": {
+        "2008": 488,
+        "2009": 326,
+        "2010": 285,
+        "2011": 268,
+        "2012": 215,
+        "2013": 302,
+        "2014": 247,
+        "2015": 396,
+        "2016": 395,
+        "2017": 389,
+        "2018": 410,
+        "2019": 487,
+        "2020": 462,
+        "2021": 503,
+        "2022": 478,
+        "2023": 412,
+        "2024": 358
+      },
+      "desmatamento_acumulado_km2": 15200,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 366.3,
+          "observado": 268,
+          "evitado": 98.3,
+          "percentual_evitado": 26.8
+        },
+        "2012": {
+          "esperado": 293.0,
+          "observado": 215,
+          "evitado": 78.0,
+          "percentual_evitado": 26.6
+        },
+        "2013": {
+          "esperado": 256.0,
+          "observado": 302,
+          "evitado": -46.0,
+          "percentual_evitado": -18.0
+        },
+        "2014": {
+          "esperado": 261.7,
+          "observado": 247,
+          "evitado": 14.7,
+          "percentual_evitado": 5.6
+        },
+        "2015": {
+          "esperado": 254.7,
+          "observado": 396,
+          "evitado": -141.3,
+          "percentual_evitado": -55.5
+        },
+        "2016": {
+          "esperado": 315.0,
+          "observado": 395,
+          "evitado": -80.0,
+          "percentual_evitado": -25.4
+        },
+        "2017": {
+          "esperado": 346.0,
+          "observado": 389,
+          "evitado": -43.0,
+          "percentual_evitado": -12.4
+        },
+        "2018": {
+          "esperado": 393.3,
+          "observado": 410,
+          "evitado": -16.7,
+          "percentual_evitado": -4.2
+        },
+        "2019": {
+          "esperado": 398.0,
+          "observado": 487,
+          "evitado": -89.0,
+          "percentual_evitado": -22.4
+        },
+        "2020": {
+          "esperado": 428.7,
+          "observado": 462,
+          "evitado": -33.3,
+          "percentual_evitado": -7.8
+        },
+        "2021": {
+          "esperado": 453.0,
+          "observado": 503,
+          "evitado": -50.0,
+          "percentual_evitado": -11.0
+        },
+        "2022": {
+          "esperado": 484.0,
+          "observado": 478,
+          "evitado": 6.0,
+          "percentual_evitado": 1.2
+        },
+        "2023": {
+          "esperado": 481.0,
+          "observado": 412,
+          "evitado": 69.0,
+          "percentual_evitado": 14.3
+        },
+        "2024": {
+          "esperado": 464.3,
+          "observado": 358,
+          "evitado": 106.3,
+          "percentual_evitado": 22.9
+        }
+      }
+    },
+    {
+      "nome": "Minas Gerais",
+      "sigla": "MG",
+      "bioma_principal": "Cerrado/Mata Atlântica",
+      "area_estado_km2": 586522,
+      "desmatamento_anual": {
+        "2008": 312,
+        "2009": 198,
+        "2010": 175,
+        "2011": 168,
+        "2012": 142,
+        "2013": 195,
+        "2014": 163,
+        "2015": 224,
+        "2016": 218,
+        "2017": 205,
+        "2018": 234,
+        "2019": 278,
+        "2020": 265,
+        "2021": 298,
+        "2022": 276,
+        "2023": 241,
+        "2024": 198
+      },
+      "desmatamento_acumulado_km2": 9800,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 228.3,
+          "observado": 168,
+          "evitado": 60.3,
+          "percentual_evitado": 26.4
+        },
+        "2012": {
+          "esperado": 180.3,
+          "observado": 142,
+          "evitado": 38.3,
+          "percentual_evitado": 21.3
+        },
+        "2013": {
+          "esperado": 161.7,
+          "observado": 195,
+          "evitado": -33.3,
+          "percentual_evitado": -20.6
+        },
+        "2014": {
+          "esperado": 168.3,
+          "observado": 163,
+          "evitado": 5.3,
+          "percentual_evitado": 3.2
+        },
+        "2015": {
+          "esperado": 166.7,
+          "observado": 224,
+          "evitado": -57.3,
+          "percentual_evitado": -34.4
+        },
+        "2016": {
+          "esperado": 194.0,
+          "observado": 218,
+          "evitado": -24.0,
+          "percentual_evitado": -12.4
+        },
+        "2017": {
+          "esperado": 201.7,
+          "observado": 205,
+          "evitado": -3.3,
+          "percentual_evitado": -1.7
+        },
+        "2018": {
+          "esperado": 215.7,
+          "observado": 234,
+          "evitado": -18.3,
+          "percentual_evitado": -8.5
+        },
+        "2019": {
+          "esperado": 219.0,
+          "observado": 278,
+          "evitado": -59.0,
+          "percentual_evitado": -26.9
+        },
+        "2020": {
+          "esperado": 239.0,
+          "observado": 265,
+          "evitado": -26.0,
+          "percentual_evitado": -10.9
+        },
+        "2021": {
+          "esperado": 259.0,
+          "observado": 298,
+          "evitado": -39.0,
+          "percentual_evitado": -15.1
+        },
+        "2022": {
+          "esperado": 280.3,
+          "observado": 276,
+          "evitado": 4.3,
+          "percentual_evitado": 1.5
+        },
+        "2023": {
+          "esperado": 279.7,
+          "observado": 241,
+          "evitado": 38.7,
+          "percentual_evitado": 13.8
+        },
+        "2024": {
+          "esperado": 271.7,
+          "observado": 198,
+          "evitado": 73.7,
+          "percentual_evitado": 27.1
+        }
+      }
+    },
+    {
+      "nome": "Mato Grosso do Sul",
+      "sigla": "MS",
+      "bioma_principal": "Cerrado/Pantanal",
+      "area_estado_km2": 357145,
+      "desmatamento_anual": {
+        "2008": 245,
+        "2009": 156,
+        "2010": 132,
+        "2011": 118,
+        "2012": 98,
+        "2013": 142,
+        "2014": 115,
+        "2015": 178,
+        "2016": 165,
+        "2017": 158,
+        "2018": 187,
+        "2019": 215,
+        "2020": 198,
+        "2021": 234,
+        "2022": 212,
+        "2023": 189,
+        "2024": 156
+      },
+      "desmatamento_acumulado_km2": 7200,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 177.7,
+          "observado": 118,
+          "evitado": 59.7,
+          "percentual_evitado": 33.6
+        },
+        "2012": {
+          "esperado": 135.3,
+          "observado": 98,
+          "evitado": 37.3,
+          "percentual_evitado": 27.6
+        },
+        "2013": {
+          "esperado": 116.0,
+          "observado": 142,
+          "evitado": -26.0,
+          "percentual_evitado": -22.4
+        },
+        "2014": {
+          "esperado": 119.3,
+          "observado": 115,
+          "evitado": 4.3,
+          "percentual_evitado": 3.6
+        },
+        "2015": {
+          "esperado": 118.3,
+          "observado": 178,
+          "evitado": -59.7,
+          "percentual_evitado": -50.4
+        },
+        "2016": {
+          "esperado": 145.0,
+          "observado": 165,
+          "evitado": -20.0,
+          "percentual_evitado": -13.8
+        },
+        "2017": {
+          "esperado": 152.7,
+          "observado": 158,
+          "evitado": -5.3,
+          "percentual_evitado": -3.5
+        },
+        "2018": {
+          "esperado": 167.0,
+          "observado": 187,
+          "evitado": -20.0,
+          "percentual_evitado": -12.0
+        },
+        "2019": {
+          "esperado": 170.0,
+          "observado": 215,
+          "evitado": -45.0,
+          "percentual_evitado": -26.5
+        },
+        "2020": {
+          "esperado": 186.7,
+          "observado": 198,
+          "evitado": -11.3,
+          "percentual_evitado": -6.1
+        },
+        "2021": {
+          "esperado": 200.0,
+          "observado": 234,
+          "evitado": -34.0,
+          "percentual_evitado": -17.0
+        },
+        "2022": {
+          "esperado": 215.7,
+          "observado": 212,
+          "evitado": 3.7,
+          "percentual_evitado": 1.7
+        },
+        "2023": {
+          "esperado": 214.7,
+          "observado": 189,
+          "evitado": 25.7,
+          "percentual_evitado": 12.0
+        },
+        "2024": {
+          "esperado": 211.7,
+          "observado": 156,
+          "evitado": 55.7,
+          "percentual_evitado": 26.3
+        }
+      }
+    },
+    {
+      "nome": "Bahia",
+      "sigla": "BA",
+      "bioma_principal": "Cerrado/Caatinga/Mata Atlântica",
+      "area_estado_km2": 564733,
+      "desmatamento_anual": {
+        "2008": 356,
+        "2009": 245,
+        "2010": 218,
+        "2011": 198,
+        "2012": 175,
+        "2013": 234,
+        "2014": 198,
+        "2015": 312,
+        "2016": 298,
+        "2017": 276,
+        "2018": 315,
+        "2019": 378,
+        "2020": 345,
+        "2021": 398,
+        "2022": 367,
+        "2023": 312,
+        "2024": 267
+      },
+      "desmatamento_acumulado_km2": 12500,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 273.0,
+          "observado": 198,
+          "evitado": 75.0,
+          "percentual_evitado": 27.5
+        },
+        "2012": {
+          "esperado": 220.3,
+          "observado": 175,
+          "evitado": 45.3,
+          "percentual_evitado": 20.6
+        },
+        "2013": {
+          "esperado": 197.0,
+          "observado": 234,
+          "evitado": -37.0,
+          "percentual_evitado": -18.8
+        },
+        "2014": {
+          "esperado": 202.3,
+          "observado": 198,
+          "evitado": 4.3,
+          "percentual_evitado": 2.1
+        },
+        "2015": {
+          "esperado": 202.3,
+          "observado": 312,
+          "evitado": -109.7,
+          "percentual_evitado": -54.2
+        },
+        "2016": {
+          "esperado": 248.0,
+          "observado": 298,
+          "evitado": -50.0,
+          "percentual_evitado": -20.2
+        },
+        "2017": {
+          "esperado": 269.3,
+          "observado": 276,
+          "evitado": -6.7,
+          "percentual_evitado": -2.5
+        },
+        "2018": {
+          "esperado": 295.3,
+          "observado": 315,
+          "evitado": -19.7,
+          "percentual_evitado": -6.7
+        },
+        "2019": {
+          "esperado": 296.3,
+          "observado": 378,
+          "evitado": -81.7,
+          "percentual_evitado": -27.6
+        },
+        "2020": {
+          "esperado": 323.0,
+          "observado": 345,
+          "evitado": -22.0,
+          "percentual_evitado": -6.8
+        },
+        "2021": {
+          "esperado": 346.0,
+          "observado": 398,
+          "evitado": -52.0,
+          "percentual_evitado": -15.0
+        },
+        "2022": {
+          "esperado": 373.7,
+          "observado": 367,
+          "evitado": 6.7,
+          "percentual_evitado": 1.8
+        },
+        "2023": {
+          "esperado": 370.0,
+          "observado": 312,
+          "evitado": 58.0,
+          "percentual_evitado": 15.7
+        },
+        "2024": {
+          "esperado": 359.0,
+          "observado": 267,
+          "evitado": 92.0,
+          "percentual_evitado": 25.6
+        }
+      }
+    },
+    {
+      "nome": "Piauí",
+      "sigla": "PI",
+      "bioma_principal": "Cerrado/Caatinga",
+      "area_estado_km2": 251611,
+      "desmatamento_anual": {
+        "2008": 278,
+        "2009": 189,
+        "2010": 165,
+        "2011": 148,
+        "2012": 132,
+        "2013": 178,
+        "2014": 145,
+        "2015": 245,
+        "2016": 234,
+        "2017": 218,
+        "2018": 256,
+        "2019": 312,
+        "2020": 289,
+        "2021": 334,
+        "2022": 298,
+        "2023": 256,
+        "2024": 215
+      },
+      "desmatamento_acumulado_km2": 8900,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 210.7,
+          "observado": 148,
+          "evitado": 62.7,
+          "percentual_evitado": 29.7
+        },
+        "2012": {
+          "esperado": 167.3,
+          "observado": 132,
+          "evitado": 35.3,
+          "percentual_evitado": 21.1
+        },
+        "2013": {
+          "esperado": 148.3,
+          "observado": 178,
+          "evitado": -29.7,
+          "percentual_evitado": -20.0
+        },
+        "2014": {
+          "esperado": 152.7,
+          "observado": 145,
+          "evitado": 7.7,
+          "percentual_evitado": 5.0
+        },
+        "2015": {
+          "esperado": 151.7,
+          "observado": 245,
+          "evitado": -93.3,
+          "percentual_evitado": -61.5
+        },
+        "2016": {
+          "esperado": 189.3,
+          "observado": 234,
+          "evitado": -44.7,
+          "percentual_evitado": -23.6
+        },
+        "2017": {
+          "esperado": 208.0,
+          "observado": 218,
+          "evitado": -10.0,
+          "percentual_evitado": -4.8
+        },
+        "2018": {
+          "esperado": 232.3,
+          "observado": 256,
+          "evitado": -23.7,
+          "percentual_evitado": -10.2
+        },
+        "2019": {
+          "esperado": 236.0,
+          "observado": 312,
+          "evitado": -76.0,
+          "percentual_evitado": -32.2
+        },
+        "2020": {
+          "esperado": 262.0,
+          "observado": 289,
+          "evitado": -27.0,
+          "percentual_evitado": -10.3
+        },
+        "2021": {
+          "esperado": 285.7,
+          "observado": 334,
+          "evitado": -48.3,
+          "percentual_evitado": -16.9
+        },
+        "2022": {
+          "esperado": 311.7,
+          "observado": 298,
+          "evitado": 13.7,
+          "percentual_evitado": 4.4
+        },
+        "2023": {
+          "esperado": 307.0,
+          "observado": 256,
+          "evitado": 51.0,
+          "percentual_evitado": 16.6
+        },
+        "2024": {
+          "esperado": 296.0,
+          "observado": 215,
+          "evitado": 81.0,
+          "percentual_evitado": 27.4
+        }
+      }
+    },
+    {
+      "nome": "São Paulo",
+      "sigla": "SP",
+      "bioma_principal": "Mata Atlântica/Cerrado",
+      "area_estado_km2": 248222,
+      "desmatamento_anual": {
+        "2008": 45,
+        "2009": 32,
+        "2010": 28,
+        "2011": 25,
+        "2012": 22,
+        "2013": 18,
+        "2014": 15,
+        "2015": 21,
+        "2016": 19,
+        "2017": 17,
+        "2018": 23,
+        "2019": 28,
+        "2020": 25,
+        "2021": 31,
+        "2022": 27,
+        "2023": 22,
+        "2024": 18
+      },
+      "desmatamento_acumulado_km2": 1200,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 35.0,
+          "observado": 25,
+          "evitado": 10.0,
+          "percentual_evitado": 28.6
+        },
+        "2012": {
+          "esperado": 28.3,
+          "observado": 22,
+          "evitado": 6.3,
+          "percentual_evitado": 22.4
+        },
+        "2013": {
+          "esperado": 25.0,
+          "observado": 18,
+          "evitado": 7.0,
+          "percentual_evitado": 28.0
+        },
+        "2014": {
+          "esperado": 21.7,
+          "observado": 15,
+          "evitado": 6.7,
+          "percentual_evitado": 30.8
+        },
+        "2015": {
+          "esperado": 18.3,
+          "observado": 21,
+          "evitado": -2.7,
+          "percentual_evitado": -14.5
+        },
+        "2016": {
+          "esperado": 18.0,
+          "observado": 19,
+          "evitado": -1.0,
+          "percentual_evitado": -5.6
+        },
+        "2017": {
+          "esperado": 18.3,
+          "observado": 17,
+          "evitado": 1.3,
+          "percentual_evitado": 7.3
+        },
+        "2018": {
+          "esperado": 19.0,
+          "observado": 23,
+          "evitado": -4.0,
+          "percentual_evitado": -21.1
+        },
+        "2019": {
+          "esperado": 19.7,
+          "observado": 28,
+          "evitado": -8.3,
+          "percentual_evitado": -42.4
+        },
+        "2020": {
+          "esperado": 22.7,
+          "observado": 25,
+          "evitado": -2.3,
+          "percentual_evitado": -10.3
+        },
+        "2021": {
+          "esperado": 25.3,
+          "observado": 31,
+          "evitado": -5.7,
+          "percentual_evitado": -22.4
+        },
+        "2022": {
+          "esperado": 28.0,
+          "observado": 27,
+          "evitado": 1.0,
+          "percentual_evitado": 3.6
+        },
+        "2023": {
+          "esperado": 27.7,
+          "observado": 22,
+          "evitado": 5.7,
+          "percentual_evitado": 20.5
+        },
+        "2024": {
+          "esperado": 26.7,
+          "observado": 18,
+          "evitado": 8.7,
+          "percentual_evitado": 32.5
+        }
+      }
+    },
+    {
+      "nome": "Paraná",
+      "sigla": "PR",
+      "bioma_principal": "Mata Atlântica",
+      "area_estado_km2": 199315,
+      "desmatamento_anual": {
+        "2008": 38,
+        "2009": 25,
+        "2010": 22,
+        "2011": 19,
+        "2012": 16,
+        "2013": 14,
+        "2014": 12,
+        "2015": 18,
+        "2016": 15,
+        "2017": 13,
+        "2018": 19,
+        "2019": 24,
+        "2020": 21,
+        "2021": 28,
+        "2022": 23,
+        "2023": 19,
+        "2024": 15
+      },
+      "desmatamento_acumulado_km2": 850,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 28.3,
+          "observado": 19,
+          "evitado": 9.3,
+          "percentual_evitado": 32.9
+        },
+        "2012": {
+          "esperado": 22.0,
+          "observado": 16,
+          "evitado": 6.0,
+          "percentual_evitado": 27.3
+        },
+        "2013": {
+          "esperado": 19.0,
+          "observado": 14,
+          "evitado": 5.0,
+          "percentual_evitado": 26.3
+        },
+        "2014": {
+          "esperado": 16.3,
+          "observado": 12,
+          "evitado": 4.3,
+          "percentual_evitado": 26.5
+        },
+        "2015": {
+          "esperado": 14.0,
+          "observado": 18,
+          "evitado": -4.0,
+          "percentual_evitado": -28.6
+        },
+        "2016": {
+          "esperado": 14.7,
+          "observado": 15,
+          "evitado": -0.3,
+          "percentual_evitado": -2.3
+        },
+        "2017": {
+          "esperado": 15.0,
+          "observado": 13,
+          "evitado": 2.0,
+          "percentual_evitado": 13.3
+        },
+        "2018": {
+          "esperado": 15.3,
+          "observado": 19,
+          "evitado": -3.7,
+          "percentual_evitado": -23.9
+        },
+        "2019": {
+          "esperado": 15.7,
+          "observado": 24,
+          "evitado": -8.3,
+          "percentual_evitado": -53.2
+        },
+        "2020": {
+          "esperado": 18.7,
+          "observado": 21,
+          "evitado": -2.3,
+          "percentual_evitado": -12.5
+        },
+        "2021": {
+          "esperado": 21.3,
+          "observado": 28,
+          "evitado": -6.7,
+          "percentual_evitado": -31.3
+        },
+        "2022": {
+          "esperado": 24.3,
+          "observado": 23,
+          "evitado": 1.3,
+          "percentual_evitado": 5.5
+        },
+        "2023": {
+          "esperado": 24.0,
+          "observado": 19,
+          "evitado": 5.0,
+          "percentual_evitado": 20.8
+        },
+        "2024": {
+          "esperado": 23.3,
+          "observado": 15,
+          "evitado": 8.3,
+          "percentual_evitado": 35.7
+        }
+      }
+    },
+    {
+      "nome": "Santa Catarina",
+      "sigla": "SC",
+      "bioma_principal": "Mata Atlântica",
+      "area_estado_km2": 95736,
+      "desmatamento_anual": {
+        "2008": 22,
+        "2009": 15,
+        "2010": 12,
+        "2011": 10,
+        "2012": 9,
+        "2013": 8,
+        "2014": 7,
+        "2015": 11,
+        "2016": 9,
+        "2017": 8,
+        "2018": 12,
+        "2019": 15,
+        "2020": 13,
+        "2021": 18,
+        "2022": 14,
+        "2023": 11,
+        "2024": 9
+      },
+      "desmatamento_acumulado_km2": 420,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 16.3,
+          "observado": 10,
+          "evitado": 6.3,
+          "percentual_evitado": 38.8
+        },
+        "2012": {
+          "esperado": 12.3,
+          "observado": 9,
+          "evitado": 3.3,
+          "percentual_evitado": 27.0
+        },
+        "2013": {
+          "esperado": 10.3,
+          "observado": 8,
+          "evitado": 2.3,
+          "percentual_evitado": 22.6
+        },
+        "2014": {
+          "esperado": 9.0,
+          "observado": 7,
+          "evitado": 2.0,
+          "percentual_evitado": 22.2
+        },
+        "2015": {
+          "esperado": 8.0,
+          "observado": 11,
+          "evitado": -3.0,
+          "percentual_evitado": -37.5
+        },
+        "2016": {
+          "esperado": 8.7,
+          "observado": 9,
+          "evitado": -0.3,
+          "percentual_evitado": -3.8
+        },
+        "2017": {
+          "esperado": 9.0,
+          "observado": 8,
+          "evitado": 1.0,
+          "percentual_evitado": 11.1
+        },
+        "2018": {
+          "esperado": 9.3,
+          "observado": 12,
+          "evitado": -2.7,
+          "percentual_evitado": -28.6
+        },
+        "2019": {
+          "esperado": 9.7,
+          "observado": 15,
+          "evitado": -5.3,
+          "percentual_evitado": -55.2
+        },
+        "2020": {
+          "esperado": 11.7,
+          "observado": 13,
+          "evitado": -1.3,
+          "percentual_evitado": -11.4
+        },
+        "2021": {
+          "esperado": 13.3,
+          "observado": 18,
+          "evitado": -4.7,
+          "percentual_evitado": -35.0
+        },
+        "2022": {
+          "esperado": 15.3,
+          "observado": 14,
+          "evitado": 1.3,
+          "percentual_evitado": 8.7
+        },
+        "2023": {
+          "esperado": 15.0,
+          "observado": 11,
+          "evitado": 4.0,
+          "percentual_evitado": 26.7
+        },
+        "2024": {
+          "esperado": 14.3,
+          "observado": 9,
+          "evitado": 5.3,
+          "percentual_evitado": 37.2
+        }
+      }
+    },
+    {
+      "nome": "Rio Grande do Sul",
+      "sigla": "RS",
+      "bioma_principal": "Mata Atlântica/Pampa",
+      "area_estado_km2": 281730,
+      "desmatamento_anual": {
+        "2008": 28,
+        "2009": 18,
+        "2010": 15,
+        "2011": 13,
+        "2012": 11,
+        "2013": 10,
+        "2014": 9,
+        "2015": 14,
+        "2016": 12,
+        "2017": 10,
+        "2018": 16,
+        "2019": 19,
+        "2020": 17,
+        "2021": 22,
+        "2022": 18,
+        "2023": 15,
+        "2024": 12
+      },
+      "desmatamento_acumulado_km2": 580,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 20.3,
+          "observado": 13,
+          "evitado": 7.3,
+          "percentual_evitado": 36.1
+        },
+        "2012": {
+          "esperado": 15.3,
+          "observado": 11,
+          "evitado": 4.3,
+          "percentual_evitado": 28.3
+        },
+        "2013": {
+          "esperado": 13.0,
+          "observado": 10,
+          "evitado": 3.0,
+          "percentual_evitado": 23.1
+        },
+        "2014": {
+          "esperado": 11.3,
+          "observado": 9,
+          "evitado": 2.3,
+          "percentual_evitado": 20.6
+        },
+        "2015": {
+          "esperado": 10.0,
+          "observado": 14,
+          "evitado": -4.0,
+          "percentual_evitado": -40.0
+        },
+        "2016": {
+          "esperado": 11.0,
+          "observado": 12,
+          "evitado": -1.0,
+          "percentual_evitado": -9.1
+        },
+        "2017": {
+          "esperado": 11.7,
+          "observado": 10,
+          "evitado": 1.7,
+          "percentual_evitado": 14.3
+        },
+        "2018": {
+          "esperado": 12.0,
+          "observado": 16,
+          "evitado": -4.0,
+          "percentual_evitado": -33.3
+        },
+        "2019": {
+          "esperado": 12.7,
+          "observado": 19,
+          "evitado": -6.3,
+          "percentual_evitado": -50.0
+        },
+        "2020": {
+          "esperado": 15.0,
+          "observado": 17,
+          "evitado": -2.0,
+          "percentual_evitado": -13.3
+        },
+        "2021": {
+          "esperado": 17.3,
+          "observado": 22,
+          "evitado": -4.7,
+          "percentual_evitado": -26.9
+        },
+        "2022": {
+          "esperado": 19.3,
+          "observado": 18,
+          "evitado": 1.3,
+          "percentual_evitado": 6.9
+        },
+        "2023": {
+          "esperado": 19.0,
+          "observado": 15,
+          "evitado": 4.0,
+          "percentual_evitado": 21.1
+        },
+        "2024": {
+          "esperado": 18.3,
+          "observado": 12,
+          "evitado": 6.3,
+          "percentual_evitado": 34.5
+        }
+      }
+    },
+    {
+      "nome": "Rio de Janeiro",
+      "sigla": "RJ",
+      "bioma_principal": "Mata Atlântica",
+      "area_estado_km2": 43781,
+      "desmatamento_anual": {
+        "2008": 12,
+        "2009": 8,
+        "2010": 7,
+        "2011": 6,
+        "2012": 5,
+        "2013": 4,
+        "2014": 4,
+        "2015": 6,
+        "2016": 5,
+        "2017": 4,
+        "2018": 7,
+        "2019": 9,
+        "2020": 8,
+        "2021": 11,
+        "2022": 9,
+        "2023": 7,
+        "2024": 5
+      },
+      "desmatamento_acumulado_km2": 210,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 9.0,
+          "observado": 6,
+          "evitado": 3.0,
+          "percentual_evitado": 33.3
+        },
+        "2012": {
+          "esperado": 7.0,
+          "observado": 5,
+          "evitado": 2.0,
+          "percentual_evitado": 28.6
+        },
+        "2013": {
+          "esperado": 6.0,
+          "observado": 4,
+          "evitado": 2.0,
+          "percentual_evitado": 33.3
+        },
+        "2014": {
+          "esperado": 5.0,
+          "observado": 4,
+          "evitado": 1.0,
+          "percentual_evitado": 20.0
+        },
+        "2015": {
+          "esperado": 4.3,
+          "observado": 6,
+          "evitado": -1.7,
+          "percentual_evitado": -38.5
+        },
+        "2016": {
+          "esperado": 4.7,
+          "observado": 5,
+          "evitado": -0.3,
+          "percentual_evitado": -7.1
+        },
+        "2017": {
+          "esperado": 5.0,
+          "observado": 4,
+          "evitado": 1.0,
+          "percentual_evitado": 20.0
+        },
+        "2018": {
+          "esperado": 5.0,
+          "observado": 7,
+          "evitado": -2.0,
+          "percentual_evitado": -40.0
+        },
+        "2019": {
+          "esperado": 5.3,
+          "observado": 9,
+          "evitado": -3.7,
+          "percentual_evitado": -68.8
+        },
+        "2020": {
+          "esperado": 6.7,
+          "observado": 8,
+          "evitado": -1.3,
+          "percentual_evitado": -20.0
+        },
+        "2021": {
+          "esperado": 8.0,
+          "observado": 11,
+          "evitado": -3.0,
+          "percentual_evitado": -37.5
+        },
+        "2022": {
+          "esperado": 9.3,
+          "observado": 9,
+          "evitado": 0.3,
+          "percentual_evitado": 3.6
+        },
+        "2023": {
+          "esperado": 9.3,
+          "observado": 7,
+          "evitado": 2.3,
+          "percentual_evitado": 25.0
+        },
+        "2024": {
+          "esperado": 9.0,
+          "observado": 5,
+          "evitado": 4.0,
+          "percentual_evitado": 44.4
+        }
+      }
+    },
+    {
+      "nome": "Espírito Santo",
+      "sigla": "ES",
+      "bioma_principal": "Mata Atlântica",
+      "area_estado_km2": 46095,
+      "desmatamento_anual": {
+        "2008": 15,
+        "2009": 10,
+        "2010": 8,
+        "2011": 7,
+        "2012": 6,
+        "2013": 5,
+        "2014": 5,
+        "2015": 7,
+        "2016": 6,
+        "2017": 5,
+        "2018": 8,
+        "2019": 10,
+        "2020": 9,
+        "2021": 12,
+        "2022": 10,
+        "2023": 8,
+        "2024": 6
+      },
+      "desmatamento_acumulado_km2": 280,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 11.0,
+          "observado": 7,
+          "evitado": 4.0,
+          "percentual_evitado": 36.4
+        },
+        "2012": {
+          "esperado": 8.3,
+          "observado": 6,
+          "evitado": 2.3,
+          "percentual_evitado": 28.0
+        },
+        "2013": {
+          "esperado": 7.0,
+          "observado": 5,
+          "evitado": 2.0,
+          "percentual_evitado": 28.6
+        },
+        "2014": {
+          "esperado": 6.0,
+          "observado": 5,
+          "evitado": 1.0,
+          "percentual_evitado": 16.7
+        },
+        "2015": {
+          "esperado": 5.3,
+          "observado": 7,
+          "evitado": -1.7,
+          "percentual_evitado": -31.3
+        },
+        "2016": {
+          "esperado": 5.7,
+          "observado": 6,
+          "evitado": -0.3,
+          "percentual_evitado": -5.9
+        },
+        "2017": {
+          "esperado": 6.0,
+          "observado": 5,
+          "evitado": 1.0,
+          "percentual_evitado": 16.7
+        },
+        "2018": {
+          "esperado": 6.0,
+          "observado": 8,
+          "evitado": -2.0,
+          "percentual_evitado": -33.3
+        },
+        "2019": {
+          "esperado": 6.3,
+          "observado": 10,
+          "evitado": -3.7,
+          "percentual_evitado": -57.9
+        },
+        "2020": {
+          "esperado": 7.7,
+          "observado": 9,
+          "evitado": -1.3,
+          "percentual_evitado": -17.4
+        },
+        "2021": {
+          "esperado": 9.0,
+          "observado": 12,
+          "evitado": -3.0,
+          "percentual_evitado": -33.3
+        },
+        "2022": {
+          "esperado": 10.3,
+          "observado": 10,
+          "evitado": 0.3,
+          "percentual_evitado": 3.2
+        },
+        "2023": {
+          "esperado": 10.3,
+          "observado": 8,
+          "evitado": 2.3,
+          "percentual_evitado": 22.6
+        },
+        "2024": {
+          "esperado": 10.0,
+          "observado": 6,
+          "evitado": 4.0,
+          "percentual_evitado": 40.0
+        }
+      }
+    },
+    {
+      "nome": "Distrito Federal",
+      "sigla": "DF",
+      "bioma_principal": "Cerrado",
+      "area_estado_km2": 5802,
+      "desmatamento_anual": {
+        "2008": 3,
+        "2009": 2,
+        "2010": 2,
+        "2011": 1,
+        "2012": 1,
+        "2013": 1,
+        "2014": 1,
+        "2015": 2,
+        "2016": 1,
+        "2017": 1,
+        "2018": 2,
+        "2019": 2,
+        "2020": 2,
+        "2021": 3,
+        "2022": 2,
+        "2023": 2,
+        "2024": 1
+      },
+      "desmatamento_acumulado_km2": 45,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 2.3,
+          "observado": 1,
+          "evitado": 1.3,
+          "percentual_evitado": 57.1
+        },
+        "2012": {
+          "esperado": 1.7,
+          "observado": 1,
+          "evitado": 0.7,
+          "percentual_evitado": 40.0
+        },
+        "2013": {
+          "esperado": 1.3,
+          "observado": 1,
+          "evitado": 0.3,
+          "percentual_evitado": 25.0
+        },
+        "2014": {
+          "esperado": 1.0,
+          "observado": 1,
+          "evitado": 0.0,
+          "percentual_evitado": 0.0
+        },
+        "2015": {
+          "esperado": 1.0,
+          "observado": 2,
+          "evitado": -1.0,
+          "percentual_evitado": -100.0
+        },
+        "2016": {
+          "esperado": 1.3,
+          "observado": 1,
+          "evitado": 0.3,
+          "percentual_evitado": 25.0
+        },
+        "2017": {
+          "esperado": 1.3,
+          "observado": 1,
+          "evitado": 0.3,
+          "percentual_evitado": 25.0
+        },
+        "2018": {
+          "esperado": 1.3,
+          "observado": 2,
+          "evitado": -0.7,
+          "percentual_evitado": -50.0
+        },
+        "2019": {
+          "esperado": 1.3,
+          "observado": 2,
+          "evitado": -0.7,
+          "percentual_evitado": -50.0
+        },
+        "2020": {
+          "esperado": 1.7,
+          "observado": 2,
+          "evitado": -0.3,
+          "percentual_evitado": -20.0
+        },
+        "2021": {
+          "esperado": 2.0,
+          "observado": 3,
+          "evitado": -1.0,
+          "percentual_evitado": -50.0
+        },
+        "2022": {
+          "esperado": 2.3,
+          "observado": 2,
+          "evitado": 0.3,
+          "percentual_evitado": 14.3
+        },
+        "2023": {
+          "esperado": 2.3,
+          "observado": 2,
+          "evitado": 0.3,
+          "percentual_evitado": 14.3
+        },
+        "2024": {
+          "esperado": 2.3,
+          "observado": 1,
+          "evitado": 1.3,
+          "percentual_evitado": 57.1
+        }
+      }
+    },
+    {
+      "nome": "Sergipe",
+      "sigla": "SE",
+      "bioma_principal": "Mata Atlântica/Caatinga",
+      "area_estado_km2": 21918,
+      "desmatamento_anual": {
+        "2008": 8,
+        "2009": 5,
+        "2010": 4,
+        "2011": 4,
+        "2012": 3,
+        "2013": 3,
+        "2014": 2,
+        "2015": 4,
+        "2016": 3,
+        "2017": 3,
+        "2018": 5,
+        "2019": 6,
+        "2020": 5,
+        "2021": 7,
+        "2022": 6,
+        "2023": 5,
+        "2024": 4
+      },
+      "desmatamento_acumulado_km2": 120,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 5.7,
+          "observado": 4,
+          "evitado": 1.7,
+          "percentual_evitado": 29.4
+        },
+        "2012": {
+          "esperado": 4.3,
+          "observado": 3,
+          "evitado": 1.3,
+          "percentual_evitado": 30.8
+        },
+        "2013": {
+          "esperado": 3.7,
+          "observado": 3,
+          "evitado": 0.7,
+          "percentual_evitado": 18.2
+        },
+        "2014": {
+          "esperado": 3.3,
+          "observado": 2,
+          "evitado": 1.3,
+          "percentual_evitado": 40.0
+        },
+        "2015": {
+          "esperado": 2.7,
+          "observado": 4,
+          "evitado": -1.3,
+          "percentual_evitado": -50.0
+        },
+        "2016": {
+          "esperado": 3.0,
+          "observado": 3,
+          "evitado": 0.0,
+          "percentual_evitado": 0.0
+        },
+        "2017": {
+          "esperado": 3.0,
+          "observado": 3,
+          "evitado": 0.0,
+          "percentual_evitado": 0.0
+        },
+        "2018": {
+          "esperado": 3.3,
+          "observado": 5,
+          "evitado": -1.7,
+          "percentual_evitado": -50.0
+        },
+        "2019": {
+          "esperado": 3.7,
+          "observado": 6,
+          "evitado": -2.3,
+          "percentual_evitado": -63.6
+        },
+        "2020": {
+          "esperado": 4.7,
+          "observado": 5,
+          "evitado": -0.3,
+          "percentual_evitado": -7.1
+        },
+        "2021": {
+          "esperado": 5.3,
+          "observado": 7,
+          "evitado": -1.7,
+          "percentual_evitado": -31.3
+        },
+        "2022": {
+          "esperado": 6.0,
+          "observado": 6,
+          "evitado": 0.0,
+          "percentual_evitado": 0.0
+        },
+        "2023": {
+          "esperado": 6.0,
+          "observado": 5,
+          "evitado": 1.0,
+          "percentual_evitado": 16.7
+        },
+        "2024": {
+          "esperado": 6.0,
+          "observado": 4,
+          "evitado": 2.0,
+          "percentual_evitado": 33.3
+        }
+      }
+    },
+    {
+      "nome": "Alagoas",
+      "sigla": "AL",
+      "bioma_principal": "Mata Atlântica/Caatinga",
+      "area_estado_km2": 27778,
+      "desmatamento_anual": {
+        "2008": 10,
+        "2009": 7,
+        "2010": 6,
+        "2011": 5,
+        "2012": 4,
+        "2013": 4,
+        "2014": 3,
+        "2015": 5,
+        "2016": 4,
+        "2017": 4,
+        "2018": 6,
+        "2019": 8,
+        "2020": 7,
+        "2021": 9,
+        "2022": 7,
+        "2023": 6,
+        "2024": 5
+      },
+      "desmatamento_acumulado_km2": 150,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 7.7,
+          "observado": 5,
+          "evitado": 2.7,
+          "percentual_evitado": 34.8
+        },
+        "2012": {
+          "esperado": 6.0,
+          "observado": 4,
+          "evitado": 2.0,
+          "percentual_evitado": 33.3
+        },
+        "2013": {
+          "esperado": 5.0,
+          "observado": 4,
+          "evitado": 1.0,
+          "percentual_evitado": 20.0
+        },
+        "2014": {
+          "esperado": 4.3,
+          "observado": 3,
+          "evitado": 1.3,
+          "percentual_evitado": 30.8
+        },
+        "2015": {
+          "esperado": 3.7,
+          "observado": 5,
+          "evitado": -1.3,
+          "percentual_evitado": -36.4
+        },
+        "2016": {
+          "esperado": 4.0,
+          "observado": 4,
+          "evitado": 0.0,
+          "percentual_evitado": 0.0
+        },
+        "2017": {
+          "esperado": 4.0,
+          "observado": 4,
+          "evitado": 0.0,
+          "percentual_evitado": 0.0
+        },
+        "2018": {
+          "esperado": 4.3,
+          "observado": 6,
+          "evitado": -1.7,
+          "percentual_evitado": -38.5
+        },
+        "2019": {
+          "esperado": 4.7,
+          "observado": 8,
+          "evitado": -3.3,
+          "percentual_evitado": -71.4
+        },
+        "2020": {
+          "esperado": 6.0,
+          "observado": 7,
+          "evitado": -1.0,
+          "percentual_evitado": -16.7
+        },
+        "2021": {
+          "esperado": 7.0,
+          "observado": 9,
+          "evitado": -2.0,
+          "percentual_evitado": -28.6
+        },
+        "2022": {
+          "esperado": 8.0,
+          "observado": 7,
+          "evitado": 1.0,
+          "percentual_evitado": 12.5
+        },
+        "2023": {
+          "esperado": 7.7,
+          "observado": 6,
+          "evitado": 1.7,
+          "percentual_evitado": 21.7
+        },
+        "2024": {
+          "esperado": 7.3,
+          "observado": 5,
+          "evitado": 2.3,
+          "percentual_evitado": 31.8
+        }
+      }
+    },
+    {
+      "nome": "Pernambuco",
+      "sigla": "PE",
+      "bioma_principal": "Caatinga/Mata Atlântica",
+      "area_estado_km2": 98312,
+      "desmatamento_anual": {
+        "2008": 18,
+        "2009": 12,
+        "2010": 10,
+        "2011": 9,
+        "2012": 8,
+        "2013": 7,
+        "2014": 6,
+        "2015": 9,
+        "2016": 8,
+        "2017": 7,
+        "2018": 11,
+        "2019": 14,
+        "2020": 12,
+        "2021": 16,
+        "2022": 13,
+        "2023": 11,
+        "2024": 9
+      },
+      "desmatamento_acumulado_km2": 320,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 13.3,
+          "observado": 9,
+          "evitado": 4.3,
+          "percentual_evitado": 32.5
+        },
+        "2012": {
+          "esperado": 10.3,
+          "observado": 8,
+          "evitado": 2.3,
+          "percentual_evitado": 22.6
+        },
+        "2013": {
+          "esperado": 9.0,
+          "observado": 7,
+          "evitado": 2.0,
+          "percentual_evitado": 22.2
+        },
+        "2014": {
+          "esperado": 8.0,
+          "observado": 6,
+          "evitado": 2.0,
+          "percentual_evitado": 25.0
+        },
+        "2015": {
+          "esperado": 7.0,
+          "observado": 9,
+          "evitado": -2.0,
+          "percentual_evitado": -28.6
+        },
+        "2016": {
+          "esperado": 7.3,
+          "observado": 8,
+          "evitado": -0.7,
+          "percentual_evitado": -9.1
+        },
+        "2017": {
+          "esperado": 7.7,
+          "observado": 7,
+          "evitado": 0.7,
+          "percentual_evitado": 8.7
+        },
+        "2018": {
+          "esperado": 8.0,
+          "observado": 11,
+          "evitado": -3.0,
+          "percentual_evitado": -37.5
+        },
+        "2019": {
+          "esperado": 8.7,
+          "observado": 14,
+          "evitado": -5.3,
+          "percentual_evitado": -61.5
+        },
+        "2020": {
+          "esperado": 10.7,
+          "observado": 12,
+          "evitado": -1.3,
+          "percentual_evitado": -12.5
+        },
+        "2021": {
+          "esperado": 12.3,
+          "observado": 16,
+          "evitado": -3.7,
+          "percentual_evitado": -29.7
+        },
+        "2022": {
+          "esperado": 14.0,
+          "observado": 13,
+          "evitado": 1.0,
+          "percentual_evitado": 7.1
+        },
+        "2023": {
+          "esperado": 13.7,
+          "observado": 11,
+          "evitado": 2.7,
+          "percentual_evitado": 19.5
+        },
+        "2024": {
+          "esperado": 13.3,
+          "observado": 9,
+          "evitado": 4.3,
+          "percentual_evitado": 32.5
+        }
+      }
+    },
+    {
+      "nome": "Paraíba",
+      "sigla": "PB",
+      "bioma_principal": "Caatinga/Mata Atlântica",
+      "area_estado_km2": 56585,
+      "desmatamento_anual": {
+        "2008": 14,
+        "2009": 9,
+        "2010": 8,
+        "2011": 7,
+        "2012": 6,
+        "2013": 5,
+        "2014": 5,
+        "2015": 7,
+        "2016": 6,
+        "2017": 5,
+        "2018": 9,
+        "2019": 11,
+        "2020": 10,
+        "2021": 13,
+        "2022": 10,
+        "2023": 9,
+        "2024": 7
+      },
+      "desmatamento_acumulado_km2": 240,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 10.3,
+          "observado": 7,
+          "evitado": 3.3,
+          "percentual_evitado": 32.3
+        },
+        "2012": {
+          "esperado": 8.0,
+          "observado": 6,
+          "evitado": 2.0,
+          "percentual_evitado": 25.0
+        },
+        "2013": {
+          "esperado": 7.0,
+          "observado": 5,
+          "evitado": 2.0,
+          "percentual_evitado": 28.6
+        },
+        "2014": {
+          "esperado": 6.0,
+          "observado": 5,
+          "evitado": 1.0,
+          "percentual_evitado": 16.7
+        },
+        "2015": {
+          "esperado": 5.3,
+          "observado": 7,
+          "evitado": -1.7,
+          "percentual_evitado": -31.3
+        },
+        "2016": {
+          "esperado": 5.7,
+          "observado": 6,
+          "evitado": -0.3,
+          "percentual_evitado": -5.9
+        },
+        "2017": {
+          "esperado": 6.0,
+          "observado": 5,
+          "evitado": 1.0,
+          "percentual_evitado": 16.7
+        },
+        "2018": {
+          "esperado": 6.0,
+          "observado": 9,
+          "evitado": -3.0,
+          "percentual_evitado": -50.0
+        },
+        "2019": {
+          "esperado": 6.7,
+          "observado": 11,
+          "evitado": -4.3,
+          "percentual_evitado": -65.0
+        },
+        "2020": {
+          "esperado": 8.3,
+          "observado": 10,
+          "evitado": -1.7,
+          "percentual_evitado": -20.0
+        },
+        "2021": {
+          "esperado": 10.0,
+          "observado": 13,
+          "evitado": -3.0,
+          "percentual_evitado": -30.0
+        },
+        "2022": {
+          "esperado": 11.3,
+          "observado": 10,
+          "evitado": 1.3,
+          "percentual_evitado": 11.8
+        },
+        "2023": {
+          "esperado": 11.0,
+          "observado": 9,
+          "evitado": 2.0,
+          "percentual_evitado": 18.2
+        },
+        "2024": {
+          "esperado": 10.7,
+          "observado": 7,
+          "evitado": 3.7,
+          "percentual_evitado": 34.4
+        }
+      }
+    },
+    {
+      "nome": "Rio Grande do Norte",
+      "sigla": "RN",
+      "bioma_principal": "Caatinga/Mata Atlântica",
+      "area_estado_km2": 52811,
+      "desmatamento_anual": {
+        "2008": 11,
+        "2009": 7,
+        "2010": 6,
+        "2011": 5,
+        "2012": 5,
+        "2013": 4,
+        "2014": 4,
+        "2015": 6,
+        "2016": 5,
+        "2017": 4,
+        "2018": 7,
+        "2019": 9,
+        "2020": 8,
+        "2021": 10,
+        "2022": 8,
+        "2023": 7,
+        "2024": 5
+      },
+      "desmatamento_acumulado_km2": 190,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 8.0,
+          "observado": 5,
+          "evitado": 3.0,
+          "percentual_evitado": 37.5
+        },
+        "2012": {
+          "esperado": 6.0,
+          "observado": 5,
+          "evitado": 1.0,
+          "percentual_evitado": 16.7
+        },
+        "2013": {
+          "esperado": 5.3,
+          "observado": 4,
+          "evitado": 1.3,
+          "percentual_evitado": 25.0
+        },
+        "2014": {
+          "esperado": 4.7,
+          "observado": 4,
+          "evitado": 0.7,
+          "percentual_evitado": 14.3
+        },
+        "2015": {
+          "esperado": 4.3,
+          "observado": 6,
+          "evitado": -1.7,
+          "percentual_evitado": -38.5
+        },
+        "2016": {
+          "esperado": 4.7,
+          "observado": 5,
+          "evitado": -0.3,
+          "percentual_evitado": -7.1
+        },
+        "2017": {
+          "esperado": 5.0,
+          "observado": 4,
+          "evitado": 1.0,
+          "percentual_evitado": 20.0
+        },
+        "2018": {
+          "esperado": 5.0,
+          "observado": 7,
+          "evitado": -2.0,
+          "percentual_evitado": -40.0
+        },
+        "2019": {
+          "esperado": 5.3,
+          "observado": 9,
+          "evitado": -3.7,
+          "percentual_evitado": -68.8
+        },
+        "2020": {
+          "esperado": 6.7,
+          "observado": 8,
+          "evitado": -1.3,
+          "percentual_evitado": -20.0
+        },
+        "2021": {
+          "esperado": 8.0,
+          "observado": 10,
+          "evitado": -2.0,
+          "percentual_evitado": -25.0
+        },
+        "2022": {
+          "esperado": 9.0,
+          "observado": 8,
+          "evitado": 1.0,
+          "percentual_evitado": 11.1
+        },
+        "2023": {
+          "esperado": 8.7,
+          "observado": 7,
+          "evitado": 1.7,
+          "percentual_evitado": 19.2
+        },
+        "2024": {
+          "esperado": 8.3,
+          "observado": 5,
+          "evitado": 3.3,
+          "percentual_evitado": 40.0
+        }
+      }
+    },
+    {
+      "nome": "Ceará",
+      "sigla": "CE",
+      "bioma_principal": "Caatinga",
+      "area_estado_km2": 148886,
+      "desmatamento_anual": {
+        "2008": 22,
+        "2009": 15,
+        "2010": 12,
+        "2011": 11,
+        "2012": 9,
+        "2013": 8,
+        "2014": 7,
+        "2015": 11,
+        "2016": 10,
+        "2017": 8,
+        "2018": 13,
+        "2019": 16,
+        "2020": 14,
+        "2021": 18,
+        "2022": 15,
+        "2023": 12,
+        "2024": 10
+      },
+      "desmatamento_acumulado_km2": 380,
+      "desmatamento_evitado": {
+        "2011": {
+          "esperado": 16.3,
+          "observado": 11,
+          "evitado": 5.3,
+          "percentual_evitado": 32.7
+        },
+        "2012": {
+          "esperado": 12.7,
+          "observado": 9,
+          "evitado": 3.7,
+          "percentual_evitado": 28.9
+        },
+        "2013": {
+          "esperado": 10.7,
+          "observado": 8,
+          "evitado": 2.7,
+          "percentual_evitado": 25.0
+        },
+        "2014": {
+          "esperado": 9.3,
+          "observado": 7,
+          "evitado": 2.3,
+          "percentual_evitado": 25.0
+        },
+        "2015": {
+          "esperado": 8.0,
+          "observado": 11,
+          "evitado": -3.0,
+          "percentual_evitado": -37.5
+        },
+        "2016": {
+          "esperado": 8.7,
+          "observado": 10,
+          "evitado": -1.3,
+          "percentual_evitado": -15.4
+        },
+        "2017": {
+          "esperado": 9.3,
+          "observado": 8,
+          "evitado": 1.3,
+          "percentual_evitado": 14.3
+        },
+        "2018": {
+          "esperado": 9.7,
+          "observado": 13,
+          "evitado": -3.3,
+          "percentual_evitado": -34.5
+        },
+        "2019": {
+          "esperado": 10.3,
+          "observado": 16,
+          "evitado": -5.7,
+          "percentual_evitado": -54.8
+        },
+        "2020": {
+          "esperado": 12.3,
+          "observado": 14,
+          "evitado": -1.7,
+          "percentual_evitado": -13.5
+        },
+        "2021": {
+          "esperado": 14.3,
+          "observado": 18,
+          "evitado": -3.7,
+          "percentual_evitado": -25.6
+        },
+        "2022": {
+          "esperado": 16.0,
+          "observado": 15,
+          "evitado": 1.0,
+          "percentual_evitado": 6.2
+        },
+        "2023": {
+          "esperado": 15.7,
+          "observado": 12,
+          "evitado": 3.7,
+          "percentual_evitado": 23.4
+        },
+        "2024": {
+          "esperado": 15.0,
+          "observado": 10,
+          "evitado": 5.0,
+          "percentual_evitado": 33.3
+        }
+      }
+    }
+  ],
+  "municipios_mt": [
+    {
+      "nome": "Alta Floresta",
+      "codigo_ibge": "5100250",
+      "area_km2": 8976,
+      "bioma": "Amazônia",
+      "desmatamento_anual": {
+        "2016": 42,
+        "2017": 38,
+        "2018": 55,
+        "2019": 67,
+        "2020": 72,
+        "2021": 89,
+        "2022": 76,
+        "2023": 62,
+        "2024": 45
+      },
+      "area_protegida_km2": 0,
+      "cobertura_florestal_pct": 48.2,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 45.0,
+          "observado": 67,
+          "evitado": -22.0,
+          "percentual_evitado": -48.9
+        },
+        "2020": {
+          "esperado": 53.3,
+          "observado": 72,
+          "evitado": -18.7,
+          "percentual_evitado": -35.0
+        },
+        "2021": {
+          "esperado": 64.7,
+          "observado": 89,
+          "evitado": -24.3,
+          "percentual_evitado": -37.6
+        },
+        "2022": {
+          "esperado": 76.0,
+          "observado": 76,
+          "evitado": 0.0,
+          "percentual_evitado": 0.0
+        },
+        "2023": {
+          "esperado": 79.0,
+          "observado": 62,
+          "evitado": 17.0,
+          "percentual_evitado": 21.5
+        },
+        "2024": {
+          "esperado": 75.7,
+          "observado": 45,
+          "evitado": 30.7,
+          "percentual_evitado": 40.5
+        }
+      }
+    },
+    {
+      "nome": "Sinop",
+      "codigo_ibge": "5107909",
+      "area_km2": 3942,
+      "bioma": "Amazônia",
+      "desmatamento_anual": {
+        "2016": 15,
+        "2017": 12,
+        "2018": 18,
+        "2019": 22,
+        "2020": 25,
+        "2021": 31,
+        "2022": 27,
+        "2023": 21,
+        "2024": 16
+      },
+      "area_protegida_km2": 0,
+      "cobertura_florestal_pct": 32.5,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 15.0,
+          "observado": 22,
+          "evitado": -7.0,
+          "percentual_evitado": -46.7
+        },
+        "2020": {
+          "esperado": 17.3,
+          "observado": 25,
+          "evitado": -7.7,
+          "percentual_evitado": -44.2
+        },
+        "2021": {
+          "esperado": 21.7,
+          "observado": 31,
+          "evitado": -9.3,
+          "percentual_evitado": -43.1
+        },
+        "2022": {
+          "esperado": 26.0,
+          "observado": 27,
+          "evitado": -1.0,
+          "percentual_evitado": -3.8
+        },
+        "2023": {
+          "esperado": 27.7,
+          "observado": 21,
+          "evitado": 6.7,
+          "percentual_evitado": 24.1
+        },
+        "2024": {
+          "esperado": 26.3,
+          "observado": 16,
+          "evitado": 10.3,
+          "percentual_evitado": 39.2
+        }
+      }
+    },
+    {
+      "nome": "Querência",
+      "codigo_ibge": "5107065",
+      "area_km2": 17842,
+      "bioma": "Amazônia/Cerrado",
+      "desmatamento_anual": {
+        "2016": 85,
+        "2017": 78,
+        "2018": 92,
+        "2019": 115,
+        "2020": 108,
+        "2021": 134,
+        "2022": 118,
+        "2023": 95,
+        "2024": 72
+      },
+      "area_protegida_km2": 7493,
+      "cobertura_florestal_pct": 55.8,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 85.0,
+          "observado": 115,
+          "evitado": -30.0,
+          "percentual_evitado": -35.3
+        },
+        "2020": {
+          "esperado": 95.0,
+          "observado": 108,
+          "evitado": -13.0,
+          "percentual_evitado": -13.7
+        },
+        "2021": {
+          "esperado": 105.0,
+          "observado": 134,
+          "evitado": -29.0,
+          "percentual_evitado": -27.6
+        },
+        "2022": {
+          "esperado": 119.0,
+          "observado": 118,
+          "evitado": 1.0,
+          "percentual_evitado": 0.8
+        },
+        "2023": {
+          "esperado": 120.0,
+          "observado": 95,
+          "evitado": 25.0,
+          "percentual_evitado": 20.8
+        },
+        "2024": {
+          "esperado": 115.7,
+          "observado": 72,
+          "evitado": 43.7,
+          "percentual_evitado": 37.8
+        }
+      }
+    },
+    {
+      "nome": "Marcelândia",
+      "codigo_ibge": "5105580",
+      "area_km2": 12294,
+      "bioma": "Amazônia",
+      "desmatamento_anual": {
+        "2016": 38,
+        "2017": 45,
+        "2018": 52,
+        "2019": 68,
+        "2020": 75,
+        "2021": 92,
+        "2022": 78,
+        "2023": 65,
+        "2024": 48
+      },
+      "area_protegida_km2": 1478,
+      "cobertura_florestal_pct": 62.3,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 45.0,
+          "observado": 68,
+          "evitado": -23.0,
+          "percentual_evitado": -51.1
+        },
+        "2020": {
+          "esperado": 55.0,
+          "observado": 75,
+          "evitado": -20.0,
+          "percentual_evitado": -36.4
+        },
+        "2021": {
+          "esperado": 65.0,
+          "observado": 92,
+          "evitado": -27.0,
+          "percentual_evitado": -41.5
+        },
+        "2022": {
+          "esperado": 78.3,
+          "observado": 78,
+          "evitado": 0.3,
+          "percentual_evitado": 0.4
+        },
+        "2023": {
+          "esperado": 81.7,
+          "observado": 65,
+          "evitado": 16.7,
+          "percentual_evitado": 20.4
+        },
+        "2024": {
+          "esperado": 78.3,
+          "observado": 48,
+          "evitado": 30.3,
+          "percentual_evitado": 38.7
+        }
+      }
+    },
+    {
+      "nome": "Juara",
+      "codigo_ibge": "5105101",
+      "area_km2": 22622,
+      "bioma": "Amazônia",
+      "desmatamento_anual": {
+        "2016": 55,
+        "2017": 48,
+        "2018": 62,
+        "2019": 78,
+        "2020": 85,
+        "2021": 105,
+        "2022": 92,
+        "2023": 75,
+        "2024": 58
+      },
+      "area_protegida_km2": 2722,
+      "cobertura_florestal_pct": 58.7,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 55.0,
+          "observado": 78,
+          "evitado": -23.0,
+          "percentual_evitado": -41.8
+        },
+        "2020": {
+          "esperado": 62.7,
+          "observado": 85,
+          "evitado": -22.3,
+          "percentual_evitado": -35.6
+        },
+        "2021": {
+          "esperado": 75.0,
+          "observado": 105,
+          "evitado": -30.0,
+          "percentual_evitado": -40.0
+        },
+        "2022": {
+          "esperado": 89.3,
+          "observado": 92,
+          "evitado": -2.7,
+          "percentual_evitado": -3.0
+        },
+        "2023": {
+          "esperado": 94.0,
+          "observado": 75,
+          "evitado": 19.0,
+          "percentual_evitado": 20.2
+        },
+        "2024": {
+          "esperado": 90.7,
+          "observado": 58,
+          "evitado": 32.7,
+          "percentual_evitado": 36.0
+        }
+      }
+    },
+    {
+      "nome": "Juína",
+      "codigo_ibge": "5105150",
+      "area_km2": 26190,
+      "bioma": "Amazônia",
+      "desmatamento_anual": {
+        "2016": 32,
+        "2017": 28,
+        "2018": 38,
+        "2019": 45,
+        "2020": 52,
+        "2021": 65,
+        "2022": 55,
+        "2023": 42,
+        "2024": 35
+      },
+      "area_protegida_km2": 16669,
+      "cobertura_florestal_pct": 72.1,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 32.7,
+          "observado": 45,
+          "evitado": -12.3,
+          "percentual_evitado": -37.8
+        },
+        "2020": {
+          "esperado": 37.0,
+          "observado": 52,
+          "evitado": -15.0,
+          "percentual_evitado": -40.5
+        },
+        "2021": {
+          "esperado": 45.0,
+          "observado": 65,
+          "evitado": -20.0,
+          "percentual_evitado": -44.4
+        },
+        "2022": {
+          "esperado": 54.0,
+          "observado": 55,
+          "evitado": -1.0,
+          "percentual_evitado": -1.9
+        },
+        "2023": {
+          "esperado": 57.3,
+          "observado": 42,
+          "evitado": 15.3,
+          "percentual_evitado": 26.7
+        },
+        "2024": {
+          "esperado": 54.0,
+          "observado": 35,
+          "evitado": 19.0,
+          "percentual_evitado": 35.2
+        }
+      }
+    },
+    {
+      "nome": "Cotriguaçu",
+      "codigo_ibge": "5103379",
+      "area_km2": 9459,
+      "bioma": "Amazônia",
+      "desmatamento_anual": {
+        "2016": 28,
+        "2017": 25,
+        "2018": 35,
+        "2019": 42,
+        "2020": 48,
+        "2021": 58,
+        "2022": 50,
+        "2023": 38,
+        "2024": 30
+      },
+      "area_protegida_km2": 3005,
+      "cobertura_florestal_pct": 68.4,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 29.3,
+          "observado": 42,
+          "evitado": -12.7,
+          "percentual_evitado": -43.2
+        },
+        "2020": {
+          "esperado": 34.0,
+          "observado": 48,
+          "evitado": -14.0,
+          "percentual_evitado": -41.2
+        },
+        "2021": {
+          "esperado": 41.7,
+          "observado": 58,
+          "evitado": -16.3,
+          "percentual_evitado": -39.2
+        },
+        "2022": {
+          "esperado": 49.3,
+          "observado": 50,
+          "evitado": -0.7,
+          "percentual_evitado": -1.4
+        },
+        "2023": {
+          "esperado": 52.0,
+          "observado": 38,
+          "evitado": 14.0,
+          "percentual_evitado": 26.9
+        },
+        "2024": {
+          "esperado": 48.7,
+          "observado": 30,
+          "evitado": 18.7,
+          "percentual_evitado": 38.4
+        }
+      }
+    },
+    {
+      "nome": "Brasnorte",
+      "codigo_ibge": "5101902",
+      "area_km2": 15960,
+      "bioma": "Amazônia/Cerrado",
+      "desmatamento_anual": {
+        "2016": 45,
+        "2017": 40,
+        "2018": 52,
+        "2019": 65,
+        "2020": 72,
+        "2021": 88,
+        "2022": 75,
+        "2023": 60,
+        "2024": 48
+      },
+      "area_protegida_km2": 3945,
+      "cobertura_florestal_pct": 52.6,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 45.7,
+          "observado": 65,
+          "evitado": -19.3,
+          "percentual_evitado": -42.3
+        },
+        "2020": {
+          "esperado": 52.3,
+          "observado": 72,
+          "evitado": -19.7,
+          "percentual_evitado": -37.6
+        },
+        "2021": {
+          "esperado": 63.0,
+          "observado": 88,
+          "evitado": -25.0,
+          "percentual_evitado": -39.7
+        },
+        "2022": {
+          "esperado": 75.0,
+          "observado": 75,
+          "evitado": 0.0,
+          "percentual_evitado": 0.0
+        },
+        "2023": {
+          "esperado": 78.3,
+          "observado": 60,
+          "evitado": 18.3,
+          "percentual_evitado": 23.4
+        },
+        "2024": {
+          "esperado": 74.3,
+          "observado": 48,
+          "evitado": 26.3,
+          "percentual_evitado": 35.4
+        }
+      }
+    },
+    {
+      "nome": "Nova Bandeirantes",
+      "codigo_ibge": "5106158",
+      "area_km2": 9531,
+      "bioma": "Amazônia",
+      "desmatamento_anual": {
+        "2016": 35,
+        "2017": 32,
+        "2018": 42,
+        "2019": 55,
+        "2020": 62,
+        "2021": 75,
+        "2022": 65,
+        "2023": 50,
+        "2024": 38
+      },
+      "area_protegida_km2": 0,
+      "cobertura_florestal_pct": 55.2,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 36.3,
+          "observado": 55,
+          "evitado": -18.7,
+          "percentual_evitado": -51.4
+        },
+        "2020": {
+          "esperado": 43.0,
+          "observado": 62,
+          "evitado": -19.0,
+          "percentual_evitado": -44.2
+        },
+        "2021": {
+          "esperado": 53.0,
+          "observado": 75,
+          "evitado": -22.0,
+          "percentual_evitado": -41.5
+        },
+        "2022": {
+          "esperado": 64.0,
+          "observado": 65,
+          "evitado": -1.0,
+          "percentual_evitado": -1.6
+        },
+        "2023": {
+          "esperado": 67.3,
+          "observado": 50,
+          "evitado": 17.3,
+          "percentual_evitado": 25.7
+        },
+        "2024": {
+          "esperado": 63.3,
+          "observado": 38,
+          "evitado": 25.3,
+          "percentual_evitado": 40.0
+        }
+      }
+    },
+    {
+      "nome": "Terra Nova do Norte",
+      "codigo_ibge": "5108055",
+      "area_km2": 2562,
+      "bioma": "Amazônia",
+      "desmatamento_anual": {
+        "2016": 8,
+        "2017": 7,
+        "2018": 10,
+        "2019": 14,
+        "2020": 16,
+        "2021": 20,
+        "2022": 17,
+        "2023": 13,
+        "2024": 10
+      },
+      "area_protegida_km2": 0,
+      "cobertura_florestal_pct": 38.5,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 8.3,
+          "observado": 14,
+          "evitado": -5.7,
+          "percentual_evitado": -68.0
+        },
+        "2020": {
+          "esperado": 10.3,
+          "observado": 16,
+          "evitado": -5.7,
+          "percentual_evitado": -54.8
+        },
+        "2021": {
+          "esperado": 13.3,
+          "observado": 20,
+          "evitado": -6.7,
+          "percentual_evitado": -50.0
+        },
+        "2022": {
+          "esperado": 16.7,
+          "observado": 17,
+          "evitado": -0.3,
+          "percentual_evitado": -2.0
+        },
+        "2023": {
+          "esperado": 17.7,
+          "observado": 13,
+          "evitado": 4.7,
+          "percentual_evitado": 26.4
+        },
+        "2024": {
+          "esperado": 16.7,
+          "observado": 10,
+          "evitado": 6.7,
+          "percentual_evitado": 40.0
+        }
+      }
+    },
+    {
+      "nome": "Colniza",
+      "codigo_ibge": "5103254",
+      "area_km2": 28106,
+      "bioma": "Amazônia",
+      "desmatamento_anual": {
+        "2016": 95,
+        "2017": 88,
+        "2018": 112,
+        "2019": 145,
+        "2020": 158,
+        "2021": 192,
+        "2022": 168,
+        "2023": 135,
+        "2024": 105
+      },
+      "area_protegida_km2": 2850,
+      "cobertura_florestal_pct": 65.8,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 98.3,
+          "observado": 145,
+          "evitado": -46.7,
+          "percentual_evitado": -47.5
+        },
+        "2020": {
+          "esperado": 115.0,
+          "observado": 158,
+          "evitado": -43.0,
+          "percentual_evitado": -37.4
+        },
+        "2021": {
+          "esperado": 138.3,
+          "observado": 192,
+          "evitado": -53.7,
+          "percentual_evitado": -38.8
+        },
+        "2022": {
+          "esperado": 165.0,
+          "observado": 168,
+          "evitado": -3.0,
+          "percentual_evitado": -1.8
+        },
+        "2023": {
+          "esperado": 172.7,
+          "observado": 135,
+          "evitado": 37.7,
+          "percentual_evitado": 21.8
+        },
+        "2024": {
+          "esperado": 165.0,
+          "observado": 105,
+          "evitado": 60.0,
+          "percentual_evitado": 36.4
+        }
+      }
+    },
+    {
+      "nome": "São Félix do Araguaia",
+      "codigo_ibge": "5107859",
+      "area_km2": 16834,
+      "bioma": "Amazônia/Cerrado",
+      "desmatamento_anual": {
+        "2016": 52,
+        "2017": 45,
+        "2018": 58,
+        "2019": 72,
+        "2020": 78,
+        "2021": 95,
+        "2022": 82,
+        "2023": 68,
+        "2024": 52
+      },
+      "area_protegida_km2": 5200,
+      "cobertura_florestal_pct": 45.3,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 51.7,
+          "observado": 72,
+          "evitado": -20.3,
+          "percentual_evitado": -39.4
+        },
+        "2020": {
+          "esperado": 58.3,
+          "observado": 78,
+          "evitado": -19.7,
+          "percentual_evitado": -33.7
+        },
+        "2021": {
+          "esperado": 69.3,
+          "observado": 95,
+          "evitado": -25.7,
+          "percentual_evitado": -37.0
+        },
+        "2022": {
+          "esperado": 81.7,
+          "observado": 82,
+          "evitado": -0.3,
+          "percentual_evitado": -0.4
+        },
+        "2023": {
+          "esperado": 85.0,
+          "observado": 68,
+          "evitado": 17.0,
+          "percentual_evitado": 20.0
+        },
+        "2024": {
+          "esperado": 81.7,
+          "observado": 52,
+          "evitado": 29.7,
+          "percentual_evitado": 36.3
+        }
+      }
+    },
+    {
+      "nome": "Cláudia",
+      "codigo_ibge": "5103056",
+      "area_km2": 3836,
+      "bioma": "Amazônia",
+      "desmatamento_anual": {
+        "2016": 12,
+        "2017": 10,
+        "2018": 15,
+        "2019": 19,
+        "2020": 22,
+        "2021": 28,
+        "2022": 24,
+        "2023": 18,
+        "2024": 14
+      },
+      "area_protegida_km2": 0,
+      "cobertura_florestal_pct": 52.1,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 12.3,
+          "observado": 19,
+          "evitado": -6.7,
+          "percentual_evitado": -54.1
+        },
+        "2020": {
+          "esperado": 14.7,
+          "observado": 22,
+          "evitado": -7.3,
+          "percentual_evitado": -50.0
+        },
+        "2021": {
+          "esperado": 18.7,
+          "observado": 28,
+          "evitado": -9.3,
+          "percentual_evitado": -50.0
+        },
+        "2022": {
+          "esperado": 23.0,
+          "observado": 24,
+          "evitado": -1.0,
+          "percentual_evitado": -4.3
+        },
+        "2023": {
+          "esperado": 24.7,
+          "observado": 18,
+          "evitado": 6.7,
+          "percentual_evitado": 27.0
+        },
+        "2024": {
+          "esperado": 23.3,
+          "observado": 14,
+          "evitado": 9.3,
+          "percentual_evitado": 40.0
+        }
+      }
+    },
+    {
+      "nome": "Guarantã do Norte",
+      "codigo_ibge": "5104104",
+      "area_km2": 4735,
+      "bioma": "Amazônia",
+      "desmatamento_anual": {
+        "2016": 18,
+        "2017": 15,
+        "2018": 22,
+        "2019": 28,
+        "2020": 32,
+        "2021": 40,
+        "2022": 35,
+        "2023": 27,
+        "2024": 20
+      },
+      "area_protegida_km2": 0,
+      "cobertura_florestal_pct": 42.8,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 18.3,
+          "observado": 28,
+          "evitado": -9.7,
+          "percentual_evitado": -52.7
+        },
+        "2020": {
+          "esperado": 21.7,
+          "observado": 32,
+          "evitado": -10.3,
+          "percentual_evitado": -47.7
+        },
+        "2021": {
+          "esperado": 27.3,
+          "observado": 40,
+          "evitado": -12.7,
+          "percentual_evitado": -46.3
+        },
+        "2022": {
+          "esperado": 33.3,
+          "observado": 35,
+          "evitado": -1.7,
+          "percentual_evitado": -5.0
+        },
+        "2023": {
+          "esperado": 35.7,
+          "observado": 27,
+          "evitado": 8.7,
+          "percentual_evitado": 24.3
+        },
+        "2024": {
+          "esperado": 34.0,
+          "observado": 20,
+          "evitado": 14.0,
+          "percentual_evitado": 41.2
+        }
+      }
+    },
+    {
+      "nome": "Novo Mundo",
+      "codigo_ibge": "5106265",
+      "area_km2": 5794,
+      "bioma": "Amazônia",
+      "desmatamento_anual": {
+        "2016": 22,
+        "2017": 18,
+        "2018": 28,
+        "2019": 35,
+        "2020": 40,
+        "2021": 48,
+        "2022": 42,
+        "2023": 32,
+        "2024": 25
+      },
+      "area_protegida_km2": 1850,
+      "cobertura_florestal_pct": 58.9,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 22.7,
+          "observado": 35,
+          "evitado": -12.3,
+          "percentual_evitado": -54.4
+        },
+        "2020": {
+          "esperado": 27.0,
+          "observado": 40,
+          "evitado": -13.0,
+          "percentual_evitado": -48.1
+        },
+        "2021": {
+          "esperado": 34.3,
+          "observado": 48,
+          "evitado": -13.7,
+          "percentual_evitado": -39.8
+        },
+        "2022": {
+          "esperado": 41.0,
+          "observado": 42,
+          "evitado": -1.0,
+          "percentual_evitado": -2.4
+        },
+        "2023": {
+          "esperado": 43.3,
+          "observado": 32,
+          "evitado": 11.3,
+          "percentual_evitado": 26.2
+        },
+        "2024": {
+          "esperado": 40.7,
+          "observado": 25,
+          "evitado": 15.7,
+          "percentual_evitado": 38.5
+        }
+      }
+    },
+    {
+      "nome": "Peixoto de Azevedo",
+      "codigo_ibge": "5106422",
+      "area_km2": 14398,
+      "bioma": "Amazônia",
+      "desmatamento_anual": {
+        "2016": 45,
+        "2017": 40,
+        "2018": 55,
+        "2019": 72,
+        "2020": 82,
+        "2021": 98,
+        "2022": 85,
+        "2023": 68,
+        "2024": 52
+      },
+      "area_protegida_km2": 2100,
+      "cobertura_florestal_pct": 55.4,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 46.7,
+          "observado": 72,
+          "evitado": -25.3,
+          "percentual_evitado": -54.3
+        },
+        "2020": {
+          "esperado": 55.7,
+          "observado": 82,
+          "evitado": -26.3,
+          "percentual_evitado": -47.3
+        },
+        "2021": {
+          "esperado": 69.7,
+          "observado": 98,
+          "evitado": -28.3,
+          "percentual_evitado": -40.7
+        },
+        "2022": {
+          "esperado": 84.0,
+          "observado": 85,
+          "evitado": -1.0,
+          "percentual_evitado": -1.2
+        },
+        "2023": {
+          "esperado": 88.3,
+          "observado": 68,
+          "evitado": 20.3,
+          "percentual_evitado": 23.0
+        },
+        "2024": {
+          "esperado": 83.7,
+          "observado": 52,
+          "evitado": 31.7,
+          "percentual_evitado": 37.8
+        }
+      }
+    },
+    {
+      "nome": "Cuiabá",
+      "codigo_ibge": "5103403",
+      "area_km2": 3538,
+      "bioma": "Cerrado",
+      "desmatamento_anual": {
+        "2016": 5,
+        "2017": 4,
+        "2018": 6,
+        "2019": 8,
+        "2020": 9,
+        "2021": 12,
+        "2022": 10,
+        "2023": 8,
+        "2024": 6
+      },
+      "area_protegida_km2": 120,
+      "cobertura_florestal_pct": 18.2,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 5.0,
+          "observado": 8,
+          "evitado": -3.0,
+          "percentual_evitado": -60.0
+        },
+        "2020": {
+          "esperado": 6.0,
+          "observado": 9,
+          "evitado": -3.0,
+          "percentual_evitado": -50.0
+        },
+        "2021": {
+          "esperado": 7.7,
+          "observado": 12,
+          "evitado": -4.3,
+          "percentual_evitado": -56.5
+        },
+        "2022": {
+          "esperado": 9.7,
+          "observado": 10,
+          "evitado": -0.3,
+          "percentual_evitado": -3.4
+        },
+        "2023": {
+          "esperado": 10.3,
+          "observado": 8,
+          "evitado": 2.3,
+          "percentual_evitado": 22.6
+        },
+        "2024": {
+          "esperado": 10.0,
+          "observado": 6,
+          "evitado": 4.0,
+          "percentual_evitado": 40.0
+        }
+      }
+    },
+    {
+      "nome": "Rondonópolis",
+      "codigo_ibge": "5107602",
+      "area_km2": 4159,
+      "bioma": "Cerrado",
+      "desmatamento_anual": {
+        "2016": 8,
+        "2017": 6,
+        "2018": 10,
+        "2019": 12,
+        "2020": 14,
+        "2021": 18,
+        "2022": 15,
+        "2023": 12,
+        "2024": 9
+      },
+      "area_protegida_km2": 85,
+      "cobertura_florestal_pct": 22.5,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 8.0,
+          "observado": 12,
+          "evitado": -4.0,
+          "percentual_evitado": -50.0
+        },
+        "2020": {
+          "esperado": 9.3,
+          "observado": 14,
+          "evitado": -4.7,
+          "percentual_evitado": -50.0
+        },
+        "2021": {
+          "esperado": 12.0,
+          "observado": 18,
+          "evitado": -6.0,
+          "percentual_evitado": -50.0
+        },
+        "2022": {
+          "esperado": 14.7,
+          "observado": 15,
+          "evitado": -0.3,
+          "percentual_evitado": -2.3
+        },
+        "2023": {
+          "esperado": 15.7,
+          "observado": 12,
+          "evitado": 3.7,
+          "percentual_evitado": 23.4
+        },
+        "2024": {
+          "esperado": 15.0,
+          "observado": 9,
+          "evitado": 6.0,
+          "percentual_evitado": 40.0
+        }
+      }
+    },
+    {
+      "nome": "Sorriso",
+      "codigo_ibge": "5107925",
+      "area_km2": 9345,
+      "bioma": "Amazônia/Cerrado",
+      "desmatamento_anual": {
+        "2016": 18,
+        "2017": 15,
+        "2018": 22,
+        "2019": 28,
+        "2020": 32,
+        "2021": 38,
+        "2022": 33,
+        "2023": 25,
+        "2024": 20
+      },
+      "area_protegida_km2": 0,
+      "cobertura_florestal_pct": 28.4,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 18.3,
+          "observado": 28,
+          "evitado": -9.7,
+          "percentual_evitado": -52.7
+        },
+        "2020": {
+          "esperado": 21.7,
+          "observado": 32,
+          "evitado": -10.3,
+          "percentual_evitado": -47.7
+        },
+        "2021": {
+          "esperado": 27.3,
+          "observado": 38,
+          "evitado": -10.7,
+          "percentual_evitado": -39.0
+        },
+        "2022": {
+          "esperado": 32.7,
+          "observado": 33,
+          "evitado": -0.3,
+          "percentual_evitado": -1.0
+        },
+        "2023": {
+          "esperado": 34.3,
+          "observado": 25,
+          "evitado": 9.3,
+          "percentual_evitado": 27.2
+        },
+        "2024": {
+          "esperado": 32.0,
+          "observado": 20,
+          "evitado": 12.0,
+          "percentual_evitado": 37.5
+        }
+      }
+    },
+    {
+      "nome": "Lucas do Rio Verde",
+      "codigo_ibge": "5105259",
+      "area_km2": 3645,
+      "bioma": "Cerrado/Amazônia",
+      "desmatamento_anual": {
+        "2016": 8,
+        "2017": 6,
+        "2018": 10,
+        "2019": 13,
+        "2020": 15,
+        "2021": 19,
+        "2022": 16,
+        "2023": 12,
+        "2024": 9
+      },
+      "area_protegida_km2": 0,
+      "cobertura_florestal_pct": 25.6,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 8.0,
+          "observado": 13,
+          "evitado": -5.0,
+          "percentual_evitado": -62.5
+        },
+        "2020": {
+          "esperado": 9.7,
+          "observado": 15,
+          "evitado": -5.3,
+          "percentual_evitado": -55.2
+        },
+        "2021": {
+          "esperado": 12.7,
+          "observado": 19,
+          "evitado": -6.3,
+          "percentual_evitado": -50.0
+        },
+        "2022": {
+          "esperado": 15.7,
+          "observado": 16,
+          "evitado": -0.3,
+          "percentual_evitado": -2.1
+        },
+        "2023": {
+          "esperado": 16.7,
+          "observado": 12,
+          "evitado": 4.7,
+          "percentual_evitado": 28.0
+        },
+        "2024": {
+          "esperado": 15.7,
+          "observado": 9,
+          "evitado": 6.7,
+          "percentual_evitado": 42.6
+        }
+      }
+    },
+    {
+      "nome": "Canarana",
+      "codigo_ibge": "5102702",
+      "area_km2": 10813,
+      "bioma": "Amazônia/Cerrado",
+      "desmatamento_anual": {
+        "2016": 35,
+        "2017": 30,
+        "2018": 42,
+        "2019": 55,
+        "2020": 62,
+        "2021": 75,
+        "2022": 65,
+        "2023": 52,
+        "2024": 40
+      },
+      "area_protegida_km2": 3200,
+      "cobertura_florestal_pct": 48.7,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 35.7,
+          "observado": 55,
+          "evitado": -19.3,
+          "percentual_evitado": -54.2
+        },
+        "2020": {
+          "esperado": 42.3,
+          "observado": 62,
+          "evitado": -19.7,
+          "percentual_evitado": -46.5
+        },
+        "2021": {
+          "esperado": 53.0,
+          "observado": 75,
+          "evitado": -22.0,
+          "percentual_evitado": -41.5
+        },
+        "2022": {
+          "esperado": 64.0,
+          "observado": 65,
+          "evitado": -1.0,
+          "percentual_evitado": -1.6
+        },
+        "2023": {
+          "esperado": 67.3,
+          "observado": 52,
+          "evitado": 15.3,
+          "percentual_evitado": 22.8
+        },
+        "2024": {
+          "esperado": 64.0,
+          "observado": 40,
+          "evitado": 24.0,
+          "percentual_evitado": 37.5
+        }
+      }
+    },
+    {
+      "nome": "Gaúcha do Norte",
+      "codigo_ibge": "5103858",
+      "area_km2": 16853,
+      "bioma": "Amazônia/Cerrado",
+      "desmatamento_anual": {
+        "2016": 42,
+        "2017": 38,
+        "2018": 52,
+        "2019": 65,
+        "2020": 72,
+        "2021": 88,
+        "2022": 75,
+        "2023": 60,
+        "2024": 48
+      },
+      "area_protegida_km2": 4500,
+      "cobertura_florestal_pct": 52.3,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 44.0,
+          "observado": 65,
+          "evitado": -21.0,
+          "percentual_evitado": -47.7
+        },
+        "2020": {
+          "esperado": 51.7,
+          "observado": 72,
+          "evitado": -20.3,
+          "percentual_evitado": -39.4
+        },
+        "2021": {
+          "esperado": 63.0,
+          "observado": 88,
+          "evitado": -25.0,
+          "percentual_evitado": -39.7
+        },
+        "2022": {
+          "esperado": 75.0,
+          "observado": 75,
+          "evitado": 0.0,
+          "percentual_evitado": 0.0
+        },
+        "2023": {
+          "esperado": 78.3,
+          "observado": 60,
+          "evitado": 18.3,
+          "percentual_evitado": 23.4
+        },
+        "2024": {
+          "esperado": 74.3,
+          "observado": 48,
+          "evitado": 26.3,
+          "percentual_evitado": 35.4
+        }
+      }
+    },
+    {
+      "nome": "Feliz Natal",
+      "codigo_ibge": "5103700",
+      "area_km2": 11462,
+      "bioma": "Amazônia",
+      "desmatamento_anual": {
+        "2016": 32,
+        "2017": 28,
+        "2018": 40,
+        "2019": 52,
+        "2020": 58,
+        "2021": 72,
+        "2022": 62,
+        "2023": 48,
+        "2024": 38
+      },
+      "area_protegida_km2": 1200,
+      "cobertura_florestal_pct": 62.5,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 33.3,
+          "observado": 52,
+          "evitado": -18.7,
+          "percentual_evitado": -56.0
+        },
+        "2020": {
+          "esperado": 40.0,
+          "observado": 58,
+          "evitado": -18.0,
+          "percentual_evitado": -45.0
+        },
+        "2021": {
+          "esperado": 50.0,
+          "observado": 72,
+          "evitado": -22.0,
+          "percentual_evitado": -44.0
+        },
+        "2022": {
+          "esperado": 60.7,
+          "observado": 62,
+          "evitado": -1.3,
+          "percentual_evitado": -2.2
+        },
+        "2023": {
+          "esperado": 64.0,
+          "observado": 48,
+          "evitado": 16.0,
+          "percentual_evitado": 25.0
+        },
+        "2024": {
+          "esperado": 60.7,
+          "observado": 38,
+          "evitado": 22.7,
+          "percentual_evitado": 37.4
+        }
+      }
+    },
+    {
+      "nome": "Nova Ubiratã",
+      "codigo_ibge": "5106240",
+      "area_km2": 12699,
+      "bioma": "Amazônia/Cerrado",
+      "desmatamento_anual": {
+        "2016": 38,
+        "2017": 35,
+        "2018": 48,
+        "2019": 62,
+        "2020": 68,
+        "2021": 82,
+        "2022": 72,
+        "2023": 55,
+        "2024": 42
+      },
+      "area_protegida_km2": 0,
+      "cobertura_florestal_pct": 45.8,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 40.3,
+          "observado": 62,
+          "evitado": -21.7,
+          "percentual_evitado": -53.7
+        },
+        "2020": {
+          "esperado": 48.3,
+          "observado": 68,
+          "evitado": -19.7,
+          "percentual_evitado": -40.7
+        },
+        "2021": {
+          "esperado": 59.3,
+          "observado": 82,
+          "evitado": -22.7,
+          "percentual_evitado": -38.2
+        },
+        "2022": {
+          "esperado": 70.7,
+          "observado": 72,
+          "evitado": -1.3,
+          "percentual_evitado": -1.9
+        },
+        "2023": {
+          "esperado": 74.0,
+          "observado": 55,
+          "evitado": 19.0,
+          "percentual_evitado": 25.7
+        },
+        "2024": {
+          "esperado": 69.7,
+          "observado": 42,
+          "evitado": 27.7,
+          "percentual_evitado": 39.7
+        }
+      }
+    },
+    {
+      "nome": "Tapurah",
+      "codigo_ibge": "5108006",
+      "area_km2": 4489,
+      "bioma": "Amazônia/Cerrado",
+      "desmatamento_anual": {
+        "2016": 12,
+        "2017": 10,
+        "2018": 15,
+        "2019": 20,
+        "2020": 22,
+        "2021": 28,
+        "2022": 24,
+        "2023": 18,
+        "2024": 14
+      },
+      "area_protegida_km2": 0,
+      "cobertura_florestal_pct": 35.2,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 12.3,
+          "observado": 20,
+          "evitado": -7.7,
+          "percentual_evitado": -62.2
+        },
+        "2020": {
+          "esperado": 15.0,
+          "observado": 22,
+          "evitado": -7.0,
+          "percentual_evitado": -46.7
+        },
+        "2021": {
+          "esperado": 19.0,
+          "observado": 28,
+          "evitado": -9.0,
+          "percentual_evitado": -47.4
+        },
+        "2022": {
+          "esperado": 23.3,
+          "observado": 24,
+          "evitado": -0.7,
+          "percentual_evitado": -2.9
+        },
+        "2023": {
+          "esperado": 24.7,
+          "observado": 18,
+          "evitado": 6.7,
+          "percentual_evitado": 27.0
+        },
+        "2024": {
+          "esperado": 23.3,
+          "observado": 14,
+          "evitado": 9.3,
+          "percentual_evitado": 40.0
+        }
+      }
+    },
+    {
+      "nome": "Aripuanã",
+      "codigo_ibge": "5101407",
+      "area_km2": 24646,
+      "bioma": "Amazônia",
+      "desmatamento_anual": {
+        "2016": 72,
+        "2017": 65,
+        "2018": 85,
+        "2019": 108,
+        "2020": 118,
+        "2021": 145,
+        "2022": 125,
+        "2023": 98,
+        "2024": 78
+      },
+      "area_protegida_km2": 8500,
+      "cobertura_florestal_pct": 72.8,
+      "desmatamento_evitado": {
+        "2019": {
+          "esperado": 74.0,
+          "observado": 108,
+          "evitado": -34.0,
+          "percentual_evitado": -45.9
+        },
+        "2020": {
+          "esperado": 86.0,
+          "observado": 118,
+          "evitado": -32.0,
+          "percentual_evitado": -37.2
+        },
+        "2021": {
+          "esperado": 103.7,
+          "observado": 145,
+          "evitado": -41.3,
+          "percentual_evitado": -39.9
+        },
+        "2022": {
+          "esperado": 123.7,
+          "observado": 125,
+          "evitado": -1.3,
+          "percentual_evitado": -1.1
+        },
+        "2023": {
+          "esperado": 129.3,
+          "observado": 98,
+          "evitado": 31.3,
+          "percentual_evitado": 24.2
+        },
+        "2024": {
+          "esperado": 122.7,
+          "observado": 78,
+          "evitado": 44.7,
+          "percentual_evitado": 36.4
+        }
+      }
+    }
+  ]
+}
