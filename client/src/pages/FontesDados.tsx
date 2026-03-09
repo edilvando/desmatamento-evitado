@@ -39,7 +39,7 @@ export default function FontesDados() {
             </h2>
           </div>
           <p className="mb-8" style={{ fontFamily: "'Source Serif 4', serif", color: "#5a5448", lineHeight: 1.85 }}>
-            Todos os dados utilizados neste sistema são de domínio público e podem ser acessados gratuitamente. As fontes incluem instituições oficiais brasileiras (INPE, IBGE, ICMBio, DNIT, ANM) e a base internacional Global Forest Change da Universidade de Maryland. Abaixo estão listadas as principais bases com seus respectivos links de acesso.
+            Todos os dados utilizados neste sistema são de domínio público e podem ser acessados gratuitamente. As fontes incluem instituições oficiais brasileiras (INPE, IBGE, ICMBio, DNIT) e a base internacional Global Forest Change da Universidade de Maryland. Abaixo estão listadas as principais bases com seus respectivos links de acesso.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
@@ -92,7 +92,7 @@ export default function FontesDados() {
                   { comp: "Área de Impacto", dado: "Limites municipais", fonte: "IBGE", formato: "Shapefile", acesso: "Público" },
                   { comp: "A — Acessibilidade", dado: "Malha rodoviária", fonte: "DNIT", formato: "Shapefile", acesso: "Público" },
                   { comp: "C — Cultivabilidade", dado: "Aptidão agrícola", fonte: "IBGE / Embrapa Solos", formato: "Shapefile", acesso: "Público" },
-                  { comp: "E — Extraibilidade", dado: "Recursos minerais e florestais", fonte: "ANM / SFB", formato: "Shapefile", acesso: "Público" },
+                  { comp: "E — Extraibilidade", dado: "Recursos minerais e florestais", fonte: "SIGMINE (ANM) / SFB", formato: "Shapefile", acesso: "Público" },
                   { comp: "U — Desprotegido", dado: "UCs e Terras Indígenas", fonte: "ICMBio / MMA", formato: "Shapefile", acesso: "Público" },
                   { comp: "Validação", dado: "Cobertura e uso da terra", fonte: "MapBiomas", formato: "GeoTIFF", acesso: "Público" },
                   { comp: "Desmatamento Observado", dado: "Taxas anuais", fonte: "PRODES / INPE", formato: "Shapefile / GeoTIFF", acesso: "Público" },

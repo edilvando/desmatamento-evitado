@@ -24,7 +24,7 @@ const fatoresACEU = [
     letra: "E",
     nome: "Extraibilidade",
     descricao: "Considera a presença de recursos extraíveis, tanto minerais quanto florestais. Áreas com concessões minerárias ou madeireiras ativas têm maior pressão de desmatamento. Inclui dados da Agência Nacional de Mineração e do Serviço Florestal Brasileiro.",
-    fonte: "ANM / SFB — Concessões minerárias e florestais",
+    fonte: "SIGMINE (ANM) / SFB — Concessões minerárias e florestais",
     cor: "#8D6E63",
   },
   {

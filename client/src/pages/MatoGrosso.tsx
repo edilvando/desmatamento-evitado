@@ -131,7 +131,7 @@ export default function MatoGrosso() {
   const avgFlorestal = munisFiltradosBioma.length > 0
     ? (munisFiltradosBioma.reduce((s, m) => s + m.cobertura_florestal_pct, 0) / munisFiltradosBioma.length).toFixed(1)
     : "0";
-  const totalProtegida = munisFiltradosBioma.reduce((s, m) => s + m.area_protegida_km2, 0);
+  const totalProtegida = 0; // Dados de áreas protegidas não disponíveis nesta versão
 
   const biomaLabel = selectedBioma === "Todos" ? "Todos os biomas" : selectedBioma;
 
@@ -344,7 +344,7 @@ export default function MatoGrosso() {
                     <Shield size={18} style={{ color: "#2E7D32" }} />
                   </div>
                   <div>
-                    <p className="text-lg font-bold" style={{ color: "#2E7D32" }}>{detail.area_protegida_km2.toLocaleString("pt-BR")} km²</p>
+                    <p className="text-lg font-bold" style={{ color: "#2E7D32" }}>—</p>
                     <p className="text-xs" style={{ color: "#9a958e" }}>Áreas protegidas</p>
                   </div>
                 </div>
@@ -478,7 +478,7 @@ export default function MatoGrosso() {
                             <span className="text-xs" style={{ color: "#5a5448" }}>{m.cobertura_florestal_pct}%</span>
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-right" style={{ color: "#7a7568" }}>{m.area_protegida_km2.toLocaleString("pt-BR")}</td>
+                        <td className="px-4 py-3 text-right" style={{ color: "#7a7568" }}>—</td>
                         <td className="px-4 py-3 text-right font-semibold" style={{ color: "#2c2417" }}>{val.toLocaleString("pt-BR")}</td>
                         <td className="px-4 py-3 text-center">
                           <button
