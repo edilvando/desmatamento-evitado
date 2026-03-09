@@ -1,31 +1,25 @@
-# TODO - Sistema Web Desmatamento Evitado
+# TODO - Melhorias v2
 
-## Dados
-- [ ] Coletar dados PRODES/TerraBrasilis de desmatamento por estado (todos os estados)
-- [ ] Coletar dados PRODES de desmatamento por município do MT
-- [ ] Processar dados em JSON para consumo pelo frontend
-- [ ] Incluir séries temporais (múltiplos anos)
+## Mapa Interativo
+- [ ] Criar componente de mapa SVG do Brasil com paths dos estados
+- [ ] Colorir estados por intensidade de desmatamento (escala de cor)
+- [ ] Adicionar tooltip com dados ao passar mouse sobre estado
+- [ ] Clicar no estado abre detalhes
 
-## Design e Frontend
-- [ ] Brainstorm de design (ideas.md)
-- [ ] Gerar imagens hero/banner
-- [ ] Implementar página principal com hero e navegação
-- [ ] Implementar visão macro (estados do Brasil)
-- [ ] Implementar visão detalhada (municípios do MT)
-- [ ] Gráficos interativos com Recharts
-- [ ] Mapa interativo do Brasil/MT
-- [ ] Logo Embrapa e créditos do criador
+## Timeline Animada
+- [ ] Slider de ano (2008-2024) com botão play/pause
+- [ ] Animação automática que percorre os anos
+- [ ] Mapa muda cores conforme o ano selecionado
+- [ ] Indicadores numéricos acompanham o ano
 
-## Documentação e Fontes
-- [ ] Aba robusta de documentação metodológica (ACEU, Hectares Indicator)
-- [ ] Seção de fontes de dados com links diretos (PRODES, GFC, MapBiomas, IBGE, etc.)
-- [ ] Seção de publicações científicas com links (Boletim 46, artigos Zolin et al.)
-- [ ] Referências bibliográficas completas
+## Mapa do Mato Grosso por Municípios
+- [ ] Baixar GeoJSON dos municípios do MT
+- [ ] Criar mapa SVG do MT com municípios coloridos por desmatamento
+- [ ] Timeline animada por ano (2016-2024)
+- [ ] Tooltip e clique para detalhes do município
 
-## Área Protegida
-- [ ] Implementar área com senha (123Troc@r)
-- [ ] Documentação completa do código nessa área
-
-## Finalização
-- [ ] Testes e ajustes
-- [ ] Checkpoint e entrega
+## Página de Estados - Série Histórica
+- [ ] Ao clicar "Ver" na tabela, abrir painel com gráficos do estado
+- [ ] Gráfico de barras com série histórica completa
+- [ ] Gráfico de linhas com desmatamento evitado (esperado vs observado)
+- [ ] Transição suave entre estados

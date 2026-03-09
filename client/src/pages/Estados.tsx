@@ -1,11 +1,13 @@
 /*
  * Estados.tsx — Visão macro por estados do Brasil
- * Gráficos de série temporal, ranking, filtros por bioma
+ * Inclui mapa interativo com timeline, gráficos de série temporal,
+ * filtros por bioma, e série histórica ao selecionar estado
  */
 import Layout from "@/components/Layout";
-import { useState, useMemo } from "react";
+import BrazilMap from "@/components/BrazilMap";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, AreaChart, Area } from "recharts";
-import { Search, ArrowUpDown, Filter } from "lucide-react";
+import { Search, ArrowUpDown, Filter, X, TrendingDown, TrendingUp, TreePine } from "lucide-react";
 import desmatamentoData from "@/data/desmatamento.json";
 
 const CERRADO_IMG = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028375704/duTvPYuJ7tMWZ778dehMaL/cerrado-landscape-KwYgs7SrYFjYGrh5EpFANX.webp";
@@ -18,6 +20,14 @@ export default function Estados() {
   const [sortBy, setSortBy] = useState<"nome" | "2024" | "acumulado">("2024");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [selectedEstado, setSelectedEstado] = useState<string | null>(null);
+  const detailRef = useRef<HTMLDivElement>(null);
+
+  // Scroll para o detalhe quando selecionar estado
+  useEffect(() => {
+    if (selectedEstado && detailRef.current) {
+      detailRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [selectedEstado]);
 
   const filteredEstados = useMemo(() => {
     let filtered = desmatamentoData.estados;
@@ -72,9 +82,24 @@ export default function Estados() {
       }));
   }, [estadoDetail]);
 
+  // Estatísticas do estado selecionado
+  const estadoStats = useMemo(() => {
+    if (!estadoDetail) return null;
+    const v24 = estadoDetail.desmatamento_anual["2024"] || 0;
+    const v23 = estadoDetail.desmatamento_anual["2023"] || 0;
+    const change = v23 > 0 ? ((v24 - v23) / v23 * 100) : 0;
+    const totalEvitado = Object.values(estadoDetail.desmatamento_evitado || {})
+      .reduce((s: number, v: any) => s + (v.evitado > 0 ? v.evitado : 0), 0);
+    return { v24, change, totalEvitado };
+  }, [estadoDetail]);
+
   const toggleSort = (col: "nome" | "2024" | "acumulado") => {
     if (sortBy === col) setSortDir(sortDir === "asc" ? "desc" : "asc");
     else { setSortBy(col); setSortDir("desc"); }
+  };
+
+  const handleSelectEstado = (sigla: string) => {
+    setSelectedEstado(selectedEstado === sigla ? null : sigla);
   };
 
   return (
@@ -94,34 +119,154 @@ export default function Estados() {
         </div>
       </section>
 
-      {/* Gráfico nacional */}
+      {/* Mapa Interativo + Gráfico Nacional lado a lado */}
       <section className="py-12">
         <div className="container">
-          <h2 className="text-2xl font-bold mb-6" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
-            Evolução Nacional do Desmatamento
-          </h2>
-          <div className="rounded-xl p-6" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
-            <ResponsiveContainer width="100%" height={350}>
-              <AreaChart data={serieNacional}>
-                <defs>
-                  <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2E7D32" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#2E7D32" stopOpacity={0.02} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e8e5dd" />
-                <XAxis dataKey="ano" tick={{ fontSize: 12, fill: "#7a7568" }} />
-                <YAxis tick={{ fontSize: 12, fill: "#7a7568" }} tickFormatter={(v) => `${(v/1000).toFixed(0)}k`} />
-                <Tooltip
-                  contentStyle={{ background: "#fff", border: "1px solid #e8e5dd", borderRadius: "8px", fontSize: "13px" }}
-                  formatter={(value: number) => [`${value.toLocaleString("pt-BR")} km²`, "Desmatamento"]}
-                />
-                <Area type="monotone" dataKey="total" stroke="#2E7D32" strokeWidth={2.5} fill="url(#colorTotal)" />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            {/* Mapa do Brasil */}
+            <BrazilMap
+              estados={desmatamentoData.estados as any}
+              onSelectEstado={handleSelectEstado}
+              selectedEstado={selectedEstado}
+            />
+
+            {/* Gráfico nacional */}
+            <div className="rounded-xl p-6" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
+              <h3 className="text-lg font-bold mb-1" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
+                Evolução Nacional do Desmatamento
+              </h3>
+              <p className="text-sm mb-4" style={{ color: "#7a7568" }}>
+                Soma de todos os estados, 2008 a 2024
+              </p>
+              <ResponsiveContainer width="100%" height={380}>
+                <AreaChart data={serieNacional}>
+                  <defs>
+                    <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#2E7D32" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#2E7D32" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e8e5dd" />
+                  <XAxis dataKey="ano" tick={{ fontSize: 12, fill: "#7a7568" }} />
+                  <YAxis tick={{ fontSize: 12, fill: "#7a7568" }} tickFormatter={(v) => `${(v/1000).toFixed(0)}k`} />
+                  <Tooltip
+                    contentStyle={{ background: "#fff", border: "1px solid #e8e5dd", borderRadius: "8px", fontSize: "13px" }}
+                    formatter={(value: number) => [`${value.toLocaleString("pt-BR")} km²`, "Desmatamento"]}
+                  />
+                  <Area type="monotone" dataKey="total" stroke="#2E7D32" strokeWidth={2.5} fill="url(#colorTotal)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </div>
       </section>
+
+      {/* Detalhe do estado selecionado — aparece entre mapa e tabela */}
+      {estadoDetail && estadoStats && (
+        <section className="py-8" ref={detailRef} style={{ background: "#f9f8f5" }}>
+          <div className="container">
+            <div className="rounded-xl overflow-hidden" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
+              {/* Header do detalhe */}
+              <div className="px-6 py-5 flex items-center justify-between flex-wrap gap-3" style={{ borderBottom: "1px solid #f0ede7" }}>
+                <div>
+                  <h3 className="text-xl font-bold" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
+                    {estadoDetail.nome} ({estadoDetail.sigla})
+                  </h3>
+                  <p className="text-sm mt-1" style={{ color: "#7a7568" }}>
+                    Bioma: {estadoDetail.bioma_principal} — Acumulado: {estadoDetail.desmatamento_acumulado_km2.toLocaleString("pt-BR")} km²
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSelectedEstado(null)}
+                  className="p-2 rounded-lg transition-colors"
+                  style={{ color: "#7a7568", background: "#f4f3ee" }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Indicadores resumo */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-6 py-5" style={{ borderBottom: "1px solid #f0ede7" }}>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "rgba(191,54,12,0.08)" }}>
+                    <TreePine size={18} style={{ color: "#BF360C" }} />
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold" style={{ color: "#2c2417" }}>{estadoStats.v24.toLocaleString("pt-BR")} km²</p>
+                    <p className="text-xs" style={{ color: "#9a958e" }}>Desmatamento 2024</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: estadoStats.change < 0 ? "rgba(46,125,50,0.08)" : "rgba(191,54,12,0.08)" }}>
+                    {estadoStats.change < 0 ? <TrendingDown size={18} style={{ color: "#2E7D32" }} /> : <TrendingUp size={18} style={{ color: "#BF360C" }} />}
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold" style={{ color: estadoStats.change < 0 ? "#2E7D32" : "#BF360C" }}>
+                      {estadoStats.change < 0 ? "↓" : "↑"} {Math.abs(estadoStats.change).toFixed(1)}%
+                    </p>
+                    <p className="text-xs" style={{ color: "#9a958e" }}>Variação 2023→2024</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "rgba(46,125,50,0.08)" }}>
+                    <TreePine size={18} style={{ color: "#2E7D32" }} />
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold" style={{ color: "#2E7D32" }}>{Math.round(estadoStats.totalEvitado).toLocaleString("pt-BR")} km²</p>
+                    <p className="text-xs" style={{ color: "#9a958e" }}>Total evitado (acumulado)</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Gráficos */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+                <div>
+                  <h4 className="text-sm font-semibold mb-4" style={{ color: "#5a5448" }}>Série Histórica de Desmatamento (km²)</h4>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={estadoSerie}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e8e5dd" />
+                      <XAxis dataKey="ano" tick={{ fontSize: 11, fill: "#7a7568" }} />
+                      <YAxis tick={{ fontSize: 11, fill: "#7a7568" }} />
+                      <Tooltip
+                        contentStyle={{ background: "#fff", border: "1px solid #e8e5dd", borderRadius: "8px", fontSize: "12px" }}
+                        formatter={(value: number) => [`${value.toLocaleString("pt-BR")} km²`, "Desmatamento"]}
+                      />
+                      <Bar dataKey="desmatamento" fill="#8D6E63" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold mb-4" style={{ color: "#5a5448" }}>Desmatamento Evitado (Esperado vs Observado)</h4>
+                  {estadoEvitado.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={estadoEvitado}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e8e5dd" />
+                        <XAxis dataKey="ano" tick={{ fontSize: 11, fill: "#7a7568" }} />
+                        <YAxis tick={{ fontSize: 11, fill: "#7a7568" }} />
+                        <Tooltip
+                          contentStyle={{ background: "#fff", border: "1px solid #e8e5dd", borderRadius: "8px", fontSize: "12px" }}
+                          formatter={(value: number, name: string) => {
+                            const label = name === "esperado" ? "Esperado" : name === "observado" ? "Observado" : "Evitado";
+                            return [`${value.toLocaleString("pt-BR")} km²`, label];
+                          }}
+                        />
+                        <Legend formatter={(value) => value === "esperado" ? "Esperado" : value === "observado" ? "Observado" : "Evitado"} />
+                        <Line type="monotone" dataKey="esperado" stroke="#C8A951" strokeWidth={2.5} dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="observado" stroke="#BF360C" strokeWidth={2.5} dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="evitado" stroke="#2E7D32" strokeWidth={2.5} strokeDasharray="5 5" dot={{ r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-[300px]" style={{ color: "#9a958e" }}>
+                      <p className="text-sm">Dados insuficientes para cálculo do desmatamento evitado.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Filtros e tabela */}
       <section className="py-8">
@@ -138,7 +283,7 @@ export default function Estados() {
                 style={{ background: "#fff", border: "1px solid #e8e5dd", color: "#2c2417", outline: "none" }}
               />
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Filter size={16} style={{ color: "#9a958e" }} />
               {biomas.map((b) => (
                 <button
@@ -184,10 +329,17 @@ export default function Estados() {
                     const v23 = estado.desmatamento_anual["2023"] || 0;
                     const change = v23 > 0 ? ((v24 - v23) / v23 * 100).toFixed(1) : "0.0";
                     const isDown = Number(change) < 0;
+                    const isActive = selectedEstado === estado.sigla;
                     return (
-                      <tr key={estado.sigla} className="transition-colors" style={{ borderBottom: "1px solid #f0ede7" }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = "#fafaf5")}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      <tr
+                        key={estado.sigla}
+                        className="transition-colors"
+                        style={{
+                          borderBottom: "1px solid #f0ede7",
+                          background: isActive ? "rgba(46,125,50,0.04)" : "transparent",
+                        }}
+                        onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = "#fafaf5"; }}
+                        onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
                       >
                         <td className="px-4 py-3 font-medium" style={{ color: "#2c2417" }}>{estado.nome}</td>
                         <td className="px-4 py-3" style={{ color: "#7a7568" }}>{estado.sigla}</td>
@@ -207,14 +359,14 @@ export default function Estados() {
                         </td>
                         <td className="px-4 py-3 text-center">
                           <button
-                            onClick={() => setSelectedEstado(selectedEstado === estado.sigla ? null : estado.sigla)}
+                            onClick={() => handleSelectEstado(estado.sigla)}
                             className="text-xs px-3 py-1 rounded-md font-medium transition-all"
                             style={{
-                              background: selectedEstado === estado.sigla ? "#2E7D32" : "rgba(46,125,50,0.08)",
-                              color: selectedEstado === estado.sigla ? "#fff" : "#2E7D32",
+                              background: isActive ? "#2E7D32" : "rgba(46,125,50,0.08)",
+                              color: isActive ? "#fff" : "#2E7D32",
                             }}
                           >
-                            {selectedEstado === estado.sigla ? "Fechar" : "Ver"}
+                            {isActive ? "Fechar" : "Ver"}
                           </button>
                         </td>
                       </tr>
@@ -226,61 +378,6 @@ export default function Estados() {
           </div>
         </div>
       </section>
-
-      {/* Detalhe do estado selecionado */}
-      {estadoDetail && (
-        <section className="py-8">
-          <div className="container">
-            <div className="rounded-xl p-6" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
-              <h3 className="text-xl font-bold mb-6" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
-                {estadoDetail.nome} ({estadoDetail.sigla}) — Análise Detalhada
-              </h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div>
-                  <h4 className="text-sm font-semibold mb-4" style={{ color: "#5a5448" }}>Série Histórica de Desmatamento</h4>
-                  <ResponsiveContainer width="100%" height={280}>
-                    <BarChart data={estadoSerie}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e8e5dd" />
-                      <XAxis dataKey="ano" tick={{ fontSize: 11, fill: "#7a7568" }} />
-                      <YAxis tick={{ fontSize: 11, fill: "#7a7568" }} />
-                      <Tooltip
-                        contentStyle={{ background: "#fff", border: "1px solid #e8e5dd", borderRadius: "8px", fontSize: "12px" }}
-                        formatter={(value: number) => [`${value.toLocaleString("pt-BR")} km²`, "Desmatamento"]}
-                      />
-                      <Bar dataKey="desmatamento" fill="#2E7D32" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold mb-4" style={{ color: "#5a5448" }}>Desmatamento Evitado (Esperado vs Observado)</h4>
-                  {estadoEvitado.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={280}>
-                      <LineChart data={estadoEvitado}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e8e5dd" />
-                        <XAxis dataKey="ano" tick={{ fontSize: 11, fill: "#7a7568" }} />
-                        <YAxis tick={{ fontSize: 11, fill: "#7a7568" }} />
-                        <Tooltip
-                          contentStyle={{ background: "#fff", border: "1px solid #e8e5dd", borderRadius: "8px", fontSize: "12px" }}
-                          formatter={(value: number, name: string) => {
-                            const label = name === "esperado" ? "Esperado" : name === "observado" ? "Observado" : "Evitado";
-                            return [`${value.toLocaleString("pt-BR")} km²`, label];
-                          }}
-                        />
-                        <Legend formatter={(value) => value === "esperado" ? "Esperado" : value === "observado" ? "Observado" : "Evitado"} />
-                        <Line type="monotone" dataKey="esperado" stroke="#C8A951" strokeWidth={2} dot={{ r: 3 }} />
-                        <Line type="monotone" dataKey="observado" stroke="#BF360C" strokeWidth={2} dot={{ r: 3 }} />
-                        <Line type="monotone" dataKey="evitado" stroke="#2E7D32" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 3 }} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <p className="text-sm" style={{ color: "#9a958e" }}>Dados insuficientes para cálculo.</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
     </Layout>
   );
 }

@@ -1,11 +1,12 @@
 /*
  * MatoGrosso.tsx — Visão detalhada por municípios do MT
- * Ranking, gráficos comparativos, filtros por bioma
+ * Mapa interativo com timeline, ranking, gráficos comparativos
  */
 import Layout from "@/components/Layout";
-import { useState, useMemo } from "react";
+import MatoGrossoMap from "@/components/MatoGrossoMap";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from "recharts";
-import { Search, ArrowUpDown, TreePine, Shield, Leaf } from "lucide-react";
+import { Search, ArrowUpDown, TreePine, Shield, Leaf, X, TrendingDown, TrendingUp } from "lucide-react";
 import desmatamentoData from "@/data/desmatamento.json";
 
 const HERO_IMG = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028375704/duTvPYuJ7tMWZ778dehMaL/hero-amazonia-7RADVFFLPdKKonoZx4vaUp.webp";
@@ -16,8 +17,16 @@ export default function MatoGrosso() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [selectedMunicipio, setSelectedMunicipio] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState("2024");
+  const detailRef = useRef<HTMLDivElement>(null);
 
   const municipios = desmatamentoData.municipios_mt;
+
+  // Scroll para detalhe quando selecionar município
+  useEffect(() => {
+    if (selectedMunicipio && detailRef.current) {
+      detailRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [selectedMunicipio]);
 
   const filtered = useMemo(() => {
     let data = [...municipios];
@@ -67,9 +76,24 @@ export default function MatoGrosso() {
       }));
   }, [detail]);
 
+  // Estatísticas do município selecionado
+  const detailStats = useMemo(() => {
+    if (!detail) return null;
+    const v24 = detail.desmatamento_anual["2024"] || 0;
+    const v23 = detail.desmatamento_anual["2023"] || 0;
+    const change = v23 > 0 ? ((v24 - v23) / v23 * 100) : 0;
+    const totalEvitado = Object.values(detail.desmatamento_evitado || {})
+      .reduce((s: number, v: any) => s + (v.evitado > 0 ? v.evitado : 0), 0);
+    return { v24, change, totalEvitado };
+  }, [detail]);
+
   const toggleSort = (col: "nome" | "2024" | "florestal") => {
     if (sortBy === col) setSortDir(sortDir === "asc" ? "desc" : "asc");
     else { setSortBy(col); setSortDir("desc"); }
+  };
+
+  const handleSelectMunicipio = (nome: string) => {
+    setSelectedMunicipio(selectedMunicipio === nome ? null : nome);
   };
 
   const anos = ["2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024"];
@@ -131,45 +155,176 @@ export default function MatoGrosso() {
         </div>
       </section>
 
-      {/* Ranking */}
+      {/* Mapa + Ranking lado a lado */}
       <section className="py-8">
         <div className="container">
-          <div className="flex flex-wrap items-center justify-between mb-6 gap-4">
-            <h2 className="text-2xl font-bold" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
-              Top 10 Municípios — Desmatamento
-            </h2>
-            <div className="flex items-center gap-2">
-              <span className="text-sm" style={{ color: "#7a7568" }}>Ano:</span>
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(e.target.value)}
-                className="px-3 py-1.5 rounded-lg text-sm"
-                style={{ background: "#fff", border: "1px solid #e8e5dd", color: "#2c2417" }}
-              >
-                {anos.map((a) => <option key={a} value={a}>{a}</option>)}
-              </select>
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            {/* Mapa do MT */}
+            <MatoGrossoMap
+              municipios={municipios as any}
+              onSelectMunicipio={handleSelectMunicipio}
+              selectedMunicipio={selectedMunicipio}
+            />
+
+            {/* Ranking */}
+            <div className="rounded-xl overflow-hidden" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
+              <div className="px-5 pt-5 pb-3 flex items-center justify-between flex-wrap gap-3">
+                <div>
+                  <h3 className="text-lg font-bold" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
+                    Top 10 Municípios
+                  </h3>
+                  <p className="text-sm" style={{ color: "#7a7568" }}>Maiores desmatadores em {selectedYear}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm" style={{ color: "#7a7568" }}>Ano:</span>
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                    className="px-3 py-1.5 rounded-lg text-sm"
+                    style={{ background: "#f4f3ee", border: "1px solid #e8e5dd", color: "#2c2417" }}
+                  >
+                    {anos.map((a) => <option key={a} value={a}>{a}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="px-3 pb-3">
+                <ResponsiveContainer width="100%" height={380}>
+                  <BarChart data={rankingData} layout="vertical" margin={{ left: 10 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e8e5dd" />
+                    <XAxis type="number" tick={{ fontSize: 11, fill: "#7a7568" }} />
+                    <YAxis type="category" dataKey="nome" tick={{ fontSize: 11, fill: "#5a5448" }} width={110} />
+                    <Tooltip
+                      contentStyle={{ background: "#fff", border: "1px solid #e8e5dd", borderRadius: "8px", fontSize: "12px" }}
+                      formatter={(value: number) => [`${value.toLocaleString("pt-BR")} km²`, "Desmatamento"]}
+                    />
+                    <Bar dataKey="desmatamento" radius={[0, 4, 4, 0]}>
+                      {rankingData.map((_, i) => (
+                        <Cell key={i} fill={i < 3 ? "#BF360C" : i < 6 ? "#C8A951" : "#2E7D32"} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-          </div>
-          <div className="rounded-xl p-6" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
-            <ResponsiveContainer width="100%" height={350}>
-              <BarChart data={rankingData} layout="vertical" margin={{ left: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e8e5dd" />
-                <XAxis type="number" tick={{ fontSize: 11, fill: "#7a7568" }} />
-                <YAxis type="category" dataKey="nome" tick={{ fontSize: 11, fill: "#5a5448" }} width={110} />
-                <Tooltip
-                  contentStyle={{ background: "#fff", border: "1px solid #e8e5dd", borderRadius: "8px", fontSize: "12px" }}
-                  formatter={(value: number) => [`${value.toLocaleString("pt-BR")} km²`, "Desmatamento"]}
-                />
-                <Bar dataKey="desmatamento" radius={[0, 4, 4, 0]}>
-                  {rankingData.map((_, i) => (
-                    <Cell key={i} fill={i < 3 ? "#BF360C" : i < 6 ? "#C8A951" : "#2E7D32"} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
           </div>
         </div>
       </section>
+
+      {/* Detalhe do município selecionado */}
+      {detail && detailStats && (
+        <section className="py-8" ref={detailRef} style={{ background: "#f9f8f5" }}>
+          <div className="container">
+            <div className="rounded-xl overflow-hidden" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
+              {/* Header */}
+              <div className="px-6 py-5 flex items-center justify-between flex-wrap gap-3" style={{ borderBottom: "1px solid #f0ede7" }}>
+                <div>
+                  <h3 className="text-xl font-bold" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
+                    {detail.nome}
+                  </h3>
+                  <p className="text-sm mt-1" style={{ color: "#7a7568" }}>
+                    {detail.bioma} — Área: {detail.area_km2.toLocaleString("pt-BR")} km² — Cobertura florestal: {detail.cobertura_florestal_pct}%
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSelectedMunicipio(null)}
+                  className="p-2 rounded-lg transition-colors"
+                  style={{ color: "#7a7568", background: "#f4f3ee" }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Indicadores */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 px-6 py-5" style={{ borderBottom: "1px solid #f0ede7" }}>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "rgba(191,54,12,0.08)" }}>
+                    <TreePine size={18} style={{ color: "#BF360C" }} />
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold" style={{ color: "#2c2417" }}>{detailStats.v24.toLocaleString("pt-BR")} km²</p>
+                    <p className="text-xs" style={{ color: "#9a958e" }}>Desmatamento 2024</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: detailStats.change < 0 ? "rgba(46,125,50,0.08)" : "rgba(191,54,12,0.08)" }}>
+                    {detailStats.change < 0 ? <TrendingDown size={18} style={{ color: "#2E7D32" }} /> : <TrendingUp size={18} style={{ color: "#BF360C" }} />}
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold" style={{ color: detailStats.change < 0 ? "#2E7D32" : "#BF360C" }}>
+                      {detailStats.change < 0 ? "↓" : "↑"} {Math.abs(detailStats.change).toFixed(1)}%
+                    </p>
+                    <p className="text-xs" style={{ color: "#9a958e" }}>Var. 2023→2024</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "rgba(46,125,50,0.08)" }}>
+                    <Shield size={18} style={{ color: "#2E7D32" }} />
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold" style={{ color: "#2E7D32" }}>{detail.area_protegida_km2.toLocaleString("pt-BR")} km²</p>
+                    <p className="text-xs" style={{ color: "#9a958e" }}>Áreas protegidas</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "rgba(46,125,50,0.08)" }}>
+                    <TreePine size={18} style={{ color: "#2E7D32" }} />
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold" style={{ color: "#2E7D32" }}>{Math.round(detailStats.totalEvitado).toLocaleString("pt-BR")} km²</p>
+                    <p className="text-xs" style={{ color: "#9a958e" }}>Total evitado</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Gráficos */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
+                <div>
+                  <h4 className="text-sm font-semibold mb-4" style={{ color: "#5a5448" }}>Série Histórica de Desmatamento (km²)</h4>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={detailSerie}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e8e5dd" />
+                      <XAxis dataKey="ano" tick={{ fontSize: 11, fill: "#7a7568" }} />
+                      <YAxis tick={{ fontSize: 11, fill: "#7a7568" }} />
+                      <Tooltip
+                        contentStyle={{ background: "#fff", border: "1px solid #e8e5dd", borderRadius: "8px", fontSize: "12px" }}
+                        formatter={(value: number) => [`${value.toLocaleString("pt-BR")} km²`, "Desmatamento"]}
+                      />
+                      <Bar dataKey="desmatamento" fill="#8D6E63" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div>
+                  <h4 className="text-sm font-semibold mb-4" style={{ color: "#5a5448" }}>Desmatamento Evitado (Esperado vs Observado)</h4>
+                  {detailEvitado.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={detailEvitado}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e8e5dd" />
+                        <XAxis dataKey="ano" tick={{ fontSize: 11, fill: "#7a7568" }} />
+                        <YAxis tick={{ fontSize: 11, fill: "#7a7568" }} />
+                        <Tooltip
+                          contentStyle={{ background: "#fff", border: "1px solid #e8e5dd", borderRadius: "8px", fontSize: "12px" }}
+                          formatter={(value: number, name: string) => {
+                            const label = name === "esperado" ? "Esperado" : name === "observado" ? "Observado" : "Evitado";
+                            return [`${value.toLocaleString("pt-BR")} km²`, label];
+                          }}
+                        />
+                        <Legend formatter={(v) => v === "esperado" ? "Esperado" : v === "observado" ? "Observado" : "Evitado"} />
+                        <Line type="monotone" dataKey="esperado" stroke="#C8A951" strokeWidth={2.5} dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="observado" stroke="#BF360C" strokeWidth={2.5} dot={{ r: 3 }} />
+                        <Line type="monotone" dataKey="evitado" stroke="#2E7D32" strokeWidth={2.5} strokeDasharray="5 5" dot={{ r: 3 }} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-[300px]" style={{ color: "#9a958e" }}>
+                      <p className="text-sm">Dados insuficientes para cálculo do desmatamento evitado.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Tabela de municípios */}
       <section className="py-8">
@@ -211,10 +366,16 @@ export default function MatoGrosso() {
                 <tbody>
                   {filtered.map((m) => {
                     const val = m.desmatamento_anual[selectedYear as keyof typeof m.desmatamento_anual] || 0;
+                    const isActive = selectedMunicipio === m.nome;
                     return (
-                      <tr key={m.nome} style={{ borderBottom: "1px solid #f0ede7" }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = "#fafaf5")}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                      <tr
+                        key={m.nome}
+                        style={{
+                          borderBottom: "1px solid #f0ede7",
+                          background: isActive ? "rgba(46,125,50,0.04)" : "transparent",
+                        }}
+                        onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.background = "#fafaf5"; }}
+                        onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.background = isActive ? "rgba(46,125,50,0.04)" : "transparent"; }}
                       >
                         <td className="px-4 py-3 font-medium" style={{ color: "#2c2417" }}>{m.nome}</td>
                         <td className="px-4 py-3">
@@ -235,14 +396,14 @@ export default function MatoGrosso() {
                         <td className="px-4 py-3 text-right font-semibold" style={{ color: "#2c2417" }}>{val.toLocaleString("pt-BR")}</td>
                         <td className="px-4 py-3 text-center">
                           <button
-                            onClick={() => setSelectedMunicipio(selectedMunicipio === m.nome ? null : m.nome)}
+                            onClick={() => handleSelectMunicipio(m.nome)}
                             className="text-xs px-3 py-1 rounded-md font-medium transition-all"
                             style={{
-                              background: selectedMunicipio === m.nome ? "#2E7D32" : "rgba(46,125,50,0.08)",
-                              color: selectedMunicipio === m.nome ? "#fff" : "#2E7D32",
+                              background: isActive ? "#2E7D32" : "rgba(46,125,50,0.08)",
+                              color: isActive ? "#fff" : "#2E7D32",
                             }}
                           >
-                            {selectedMunicipio === m.nome ? "Fechar" : "Ver"}
+                            {isActive ? "Fechar" : "Ver"}
                           </button>
                         </td>
                       </tr>
@@ -254,64 +415,6 @@ export default function MatoGrosso() {
           </div>
         </div>
       </section>
-
-      {/* Detalhe do município */}
-      {detail && (
-        <section className="py-8">
-          <div className="container">
-            <div className="rounded-xl p-6" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
-              <h3 className="text-xl font-bold mb-2" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
-                {detail.nome}
-              </h3>
-              <p className="text-sm mb-6" style={{ color: "#7a7568" }}>
-                {detail.bioma} · Área: {detail.area_km2.toLocaleString("pt-BR")} km² · Cobertura florestal: {detail.cobertura_florestal_pct}% · Áreas protegidas: {detail.area_protegida_km2.toLocaleString("pt-BR")} km²
-              </p>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div>
-                  <h4 className="text-sm font-semibold mb-4" style={{ color: "#5a5448" }}>Série Histórica</h4>
-                  <ResponsiveContainer width="100%" height={280}>
-                    <BarChart data={detailSerie}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e8e5dd" />
-                      <XAxis dataKey="ano" tick={{ fontSize: 11, fill: "#7a7568" }} />
-                      <YAxis tick={{ fontSize: 11, fill: "#7a7568" }} />
-                      <Tooltip
-                        contentStyle={{ background: "#fff", border: "1px solid #e8e5dd", borderRadius: "8px", fontSize: "12px" }}
-                        formatter={(value: number) => [`${value.toLocaleString("pt-BR")} km²`, "Desmatamento"]}
-                      />
-                      <Bar dataKey="desmatamento" fill="#2E7D32" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-                <div>
-                  <h4 className="text-sm font-semibold mb-4" style={{ color: "#5a5448" }}>Desmatamento Evitado</h4>
-                  {detailEvitado.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={280}>
-                      <LineChart data={detailEvitado}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e8e5dd" />
-                        <XAxis dataKey="ano" tick={{ fontSize: 11, fill: "#7a7568" }} />
-                        <YAxis tick={{ fontSize: 11, fill: "#7a7568" }} />
-                        <Tooltip
-                          contentStyle={{ background: "#fff", border: "1px solid #e8e5dd", borderRadius: "8px", fontSize: "12px" }}
-                          formatter={(value: number, name: string) => {
-                            const label = name === "esperado" ? "Esperado" : name === "observado" ? "Observado" : "Evitado";
-                            return [`${value.toLocaleString("pt-BR")} km²`, label];
-                          }}
-                        />
-                        <Legend formatter={(v) => v === "esperado" ? "Esperado" : v === "observado" ? "Observado" : "Evitado"} />
-                        <Line type="monotone" dataKey="esperado" stroke="#C8A951" strokeWidth={2} dot={{ r: 3 }} />
-                        <Line type="monotone" dataKey="observado" stroke="#BF360C" strokeWidth={2} dot={{ r: 3 }} />
-                        <Line type="monotone" dataKey="evitado" stroke="#2E7D32" strokeWidth={2} strokeDasharray="5 5" dot={{ r: 3 }} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <p className="text-sm" style={{ color: "#9a958e" }}>Dados insuficientes.</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
     </Layout>
   );
 }
