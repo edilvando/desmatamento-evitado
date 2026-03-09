@@ -1,19 +1,26 @@
 /*
  * MatoGrosso.tsx — Visão detalhada por municípios do MT
- * Mapa interativo com timeline, ranking, gráficos comparativos
+ * Filtro por bioma, seletor de ano, gráficos reativos, ranking dinâmico
  */
 import Layout from "@/components/Layout";
 import MatoGrossoMap from "@/components/MatoGrossoMap";
 import { useState, useMemo, useRef, useEffect } from "react";
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from "recharts";
-import { Search, ArrowUpDown, TreePine, Shield, Leaf, X, TrendingDown, TrendingUp } from "lucide-react";
+import {
+  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, Legend, Cell, AreaChart, Area
+} from "recharts";
+import { Search, ArrowUpDown, TreePine, Shield, Leaf, X, TrendingDown, TrendingUp, Filter, Calendar } from "lucide-react";
 import desmatamentoData from "@/data/desmatamento.json";
 
 const HERO_IMG = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028375704/duTvPYuJ7tMWZ778dehMaL/hero-amazonia-7RADVFFLPdKKonoZx4vaUp.webp";
 
+const biomasMT = ["Todos", "Amazônia", "Cerrado", "Amazônia/Cerrado"];
+const ANOS = ["2016","2017","2018","2019","2020","2021","2022","2023","2024"];
+
 export default function MatoGrosso() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<"nome" | "2024" | "florestal">("2024");
+  const [selectedBioma, setSelectedBioma] = useState("Todos");
+  const [sortBy, setSortBy] = useState<"nome" | "ano" | "florestal">("ano");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [selectedMunicipio, setSelectedMunicipio] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState("2024");
@@ -21,21 +28,24 @@ export default function MatoGrosso() {
 
   const municipios = desmatamentoData.municipios_mt;
 
-  // Scroll para detalhe quando selecionar município
   useEffect(() => {
     if (selectedMunicipio && detailRef.current) {
       detailRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   }, [selectedMunicipio]);
 
+  // Filtragem e ordenação
   const filtered = useMemo(() => {
     let data = [...municipios];
+    if (selectedBioma !== "Todos") {
+      data = data.filter((m) => m.bioma.includes(selectedBioma) || m.bioma === selectedBioma);
+    }
     if (searchTerm) {
       data = data.filter((m) => m.nome.toLowerCase().includes(searchTerm.toLowerCase()));
     }
     data.sort((a, b) => {
       if (sortBy === "nome") return sortDir === "asc" ? a.nome.localeCompare(b.nome) : b.nome.localeCompare(a.nome);
-      if (sortBy === "2024") {
+      if (sortBy === "ano") {
         const va = a.desmatamento_anual[selectedYear as keyof typeof a.desmatamento_anual] || 0;
         const vb = b.desmatamento_anual[selectedYear as keyof typeof b.desmatamento_anual] || 0;
         return sortDir === "asc" ? va - vb : vb - va;
@@ -43,17 +53,35 @@ export default function MatoGrosso() {
       return sortDir === "asc" ? a.cobertura_florestal_pct - b.cobertura_florestal_pct : b.cobertura_florestal_pct - a.cobertura_florestal_pct;
     });
     return data;
-  }, [municipios, searchTerm, sortBy, sortDir, selectedYear]);
+  }, [municipios, searchTerm, sortBy, sortDir, selectedYear, selectedBioma]);
 
+  // Ranking top 10 — reativo ao bioma e ano
   const rankingData = useMemo(() => {
-    return [...municipios]
+    const munisFiltrados = selectedBioma === "Todos"
+      ? municipios
+      : municipios.filter(m => m.bioma.includes(selectedBioma) || m.bioma === selectedBioma);
+
+    return [...munisFiltrados]
       .sort((a, b) => (b.desmatamento_anual[selectedYear as keyof typeof b.desmatamento_anual] || 0) - (a.desmatamento_anual[selectedYear as keyof typeof a.desmatamento_anual] || 0))
       .slice(0, 10)
       .map((m) => ({
-        nome: m.nome.length > 12 ? m.nome.substring(0, 12) + "…" : m.nome,
+        nome: m.nome.length > 14 ? m.nome.substring(0, 14) + "…" : m.nome,
+        nomeCompleto: m.nome,
         desmatamento: m.desmatamento_anual[selectedYear as keyof typeof m.desmatamento_anual] || 0,
       }));
-  }, [municipios, selectedYear]);
+  }, [municipios, selectedYear, selectedBioma]);
+
+  // Evolução temporal — reativa ao bioma
+  const serieEvolucao = useMemo(() => {
+    const munisFiltrados = selectedBioma === "Todos"
+      ? municipios
+      : municipios.filter(m => m.bioma.includes(selectedBioma) || m.bioma === selectedBioma);
+
+    return ANOS.map((ano) => {
+      const total = munisFiltrados.reduce((sum, m) => sum + (m.desmatamento_anual[ano as keyof typeof m.desmatamento_anual] || 0), 0);
+      return { ano, total };
+    });
+  }, [municipios, selectedBioma]);
 
   const detail = selectedMunicipio ? municipios.find((m) => m.nome === selectedMunicipio) : null;
 
@@ -69,25 +97,22 @@ export default function MatoGrosso() {
     return Object.entries(detail.desmatamento_evitado)
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([ano, val]: [string, any]) => ({
-        ano,
-        esperado: val.esperado,
-        observado: val.observado,
-        evitado: val.evitado,
+        ano, esperado: val.esperado, observado: val.observado, evitado: val.evitado,
       }));
   }, [detail]);
 
-  // Estatísticas do município selecionado
   const detailStats = useMemo(() => {
     if (!detail) return null;
-    const v24 = detail.desmatamento_anual["2024"] || 0;
-    const v23 = detail.desmatamento_anual["2023"] || 0;
-    const change = v23 > 0 ? ((v24 - v23) / v23 * 100) : 0;
+    const vAno = detail.desmatamento_anual[selectedYear as keyof typeof detail.desmatamento_anual] || 0;
+    const prevYear = String(Number(selectedYear) - 1);
+    const vPrev = detail.desmatamento_anual[prevYear as keyof typeof detail.desmatamento_anual] || 0;
+    const change = vPrev > 0 ? ((vAno - vPrev) / vPrev * 100) : 0;
     const totalEvitado = Object.values(detail.desmatamento_evitado || {})
       .reduce((s: number, v: any) => s + (v.evitado > 0 ? v.evitado : 0), 0);
-    return { v24, change, totalEvitado };
-  }, [detail]);
+    return { vAno, change, totalEvitado, prevYear };
+  }, [detail, selectedYear]);
 
-  const toggleSort = (col: "nome" | "2024" | "florestal") => {
+  const toggleSort = (col: "nome" | "ano" | "florestal") => {
     if (sortBy === col) setSortDir(sortDir === "asc" ? "desc" : "asc");
     else { setSortBy(col); setSortDir("desc"); }
   };
@@ -96,12 +121,19 @@ export default function MatoGrosso() {
     setSelectedMunicipio(selectedMunicipio === nome ? null : nome);
   };
 
-  const anos = ["2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024"];
+  // Totais reativos ao bioma
+  const munisFiltradosBioma = useMemo(() => {
+    if (selectedBioma === "Todos") return municipios;
+    return municipios.filter(m => m.bioma.includes(selectedBioma) || m.bioma === selectedBioma);
+  }, [municipios, selectedBioma]);
 
-  // Totais MT
-  const totalMT = municipios.reduce((s, m) => s + (m.desmatamento_anual[selectedYear as keyof typeof m.desmatamento_anual] || 0), 0);
-  const avgFlorestal = (municipios.reduce((s, m) => s + m.cobertura_florestal_pct, 0) / municipios.length).toFixed(1);
-  const totalProtegida = municipios.reduce((s, m) => s + m.area_protegida_km2, 0);
+  const totalMT = munisFiltradosBioma.reduce((s, m) => s + (m.desmatamento_anual[selectedYear as keyof typeof m.desmatamento_anual] || 0), 0);
+  const avgFlorestal = munisFiltradosBioma.length > 0
+    ? (munisFiltradosBioma.reduce((s, m) => s + m.cobertura_florestal_pct, 0) / munisFiltradosBioma.length).toFixed(1)
+    : "0";
+  const totalProtegida = munisFiltradosBioma.reduce((s, m) => s + m.area_protegida_km2, 0);
+
+  const biomaLabel = selectedBioma === "Todos" ? "Todos os biomas" : selectedBioma;
 
   return (
     <Layout>
@@ -120,8 +152,44 @@ export default function MatoGrosso() {
         </div>
       </section>
 
-      {/* Indicadores */}
-      <section className="py-10">
+      {/* Filtros de bioma + seletor de ano */}
+      <section className="pt-10 pb-2">
+        <div className="container">
+          <div className="flex items-center gap-3 flex-wrap">
+            <Filter size={16} style={{ color: "#9a958e" }} />
+            <span className="text-sm font-medium" style={{ color: "#5a5448" }}>Bioma:</span>
+            {biomasMT.map((b) => (
+              <button
+                key={b}
+                onClick={() => setSelectedBioma(b)}
+                className="px-4 py-2 rounded-full text-sm font-medium transition-all"
+                style={{
+                  background: selectedBioma === b ? "#2E7D32" : "#fff",
+                  color: selectedBioma === b ? "#fff" : "#5a5448",
+                  border: `1px solid ${selectedBioma === b ? "#2E7D32" : "#e8e5dd"}`,
+                }}
+              >
+                {b}
+              </button>
+            ))}
+            <div className="ml-auto flex items-center gap-2">
+              <Calendar size={14} style={{ color: "#7a7568" }} />
+              <span className="text-sm" style={{ color: "#7a7568" }}>Ano:</span>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="px-3 py-1.5 rounded-lg text-sm"
+                style={{ background: "#f4f3ee", border: "1px solid #e8e5dd", color: "#2c2417" }}
+              >
+                {ANOS.map((a) => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Indicadores — reativos ao bioma e ano */}
+      <section className="py-6">
         <div className="container">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="rounded-xl p-5 flex items-center gap-4" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
@@ -130,7 +198,7 @@ export default function MatoGrosso() {
               </div>
               <div>
                 <p className="text-2xl font-bold" style={{ color: "#2E7D32" }}>{totalMT.toLocaleString("pt-BR")} km²</p>
-                <p className="text-xs" style={{ color: "#7a7568" }}>Desmatamento {selectedYear}</p>
+                <p className="text-xs" style={{ color: "#7a7568" }}>Desmatamento {selectedYear} ({biomaLabel})</p>
               </div>
             </div>
             <div className="rounded-xl p-5 flex items-center gap-4" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
@@ -156,54 +224,75 @@ export default function MatoGrosso() {
       </section>
 
       {/* Mapa + Ranking lado a lado */}
-      <section className="py-8">
+      <section className="py-6">
         <div className="container">
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-            {/* Mapa do MT */}
             <MatoGrossoMap
               municipios={municipios as any}
               onSelectMunicipio={handleSelectMunicipio}
               selectedMunicipio={selectedMunicipio}
+              selectedBioma={selectedBioma}
+              selectedYear={selectedYear}
+              onYearChange={setSelectedYear}
             />
 
-            {/* Ranking */}
-            <div className="rounded-xl overflow-hidden" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
-              <div className="px-5 pt-5 pb-3 flex items-center justify-between flex-wrap gap-3">
-                <div>
+            <div className="flex flex-col gap-6">
+              {/* Ranking */}
+              <div className="rounded-xl overflow-hidden" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
+                <div className="px-5 pt-5 pb-3">
                   <h3 className="text-lg font-bold" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
-                    Top 10 Municípios
+                    Top 10 Municípios — {biomaLabel} — {selectedYear}
                   </h3>
-                  <p className="text-sm" style={{ color: "#7a7568" }}>Maiores desmatadores em {selectedYear}</p>
+                  <p className="text-sm" style={{ color: "#7a7568" }}>Maiores desmatadores no ano e bioma selecionados</p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm" style={{ color: "#7a7568" }}>Ano:</span>
-                  <select
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                    className="px-3 py-1.5 rounded-lg text-sm"
-                    style={{ background: "#f4f3ee", border: "1px solid #e8e5dd", color: "#2c2417" }}
-                  >
-                    {anos.map((a) => <option key={a} value={a}>{a}</option>)}
-                  </select>
+                <div className="px-3 pb-3">
+                  <ResponsiveContainer width="100%" height={280}>
+                    <BarChart data={rankingData} layout="vertical" margin={{ left: 10 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e8e5dd" />
+                      <XAxis type="number" tick={{ fontSize: 11, fill: "#7a7568" }} />
+                      <YAxis type="category" dataKey="nome" tick={{ fontSize: 11, fill: "#5a5448" }} width={110} />
+                      <Tooltip
+                        contentStyle={{ background: "#fff", border: "1px solid #e8e5dd", borderRadius: "8px", fontSize: "12px" }}
+                        formatter={(value: number, _: any, props: any) => [`${value.toLocaleString("pt-BR")} km²`, props.payload.nomeCompleto]}
+                      />
+                      <Bar dataKey="desmatamento" radius={[0, 4, 4, 0]}>
+                        {rankingData.map((_, i) => (
+                          <Cell key={i} fill={i < 3 ? "#BF360C" : i < 6 ? "#C8A951" : "#2E7D32"} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
-              <div className="px-3 pb-3">
-                <ResponsiveContainer width="100%" height={380}>
-                  <BarChart data={rankingData} layout="vertical" margin={{ left: 10 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e8e5dd" />
-                    <XAxis type="number" tick={{ fontSize: 11, fill: "#7a7568" }} />
-                    <YAxis type="category" dataKey="nome" tick={{ fontSize: 11, fill: "#5a5448" }} width={110} />
-                    <Tooltip
-                      contentStyle={{ background: "#fff", border: "1px solid #e8e5dd", borderRadius: "8px", fontSize: "12px" }}
-                      formatter={(value: number) => [`${value.toLocaleString("pt-BR")} km²`, "Desmatamento"]}
-                    />
-                    <Bar dataKey="desmatamento" radius={[0, 4, 4, 0]}>
-                      {rankingData.map((_, i) => (
-                        <Cell key={i} fill={i < 3 ? "#BF360C" : i < 6 ? "#C8A951" : "#2E7D32"} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+
+              {/* Evolução temporal */}
+              <div className="rounded-xl overflow-hidden" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
+                <div className="px-5 pt-5 pb-3">
+                  <h3 className="text-base font-bold" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
+                    Evolução — {biomaLabel}
+                  </h3>
+                  <p className="text-sm" style={{ color: "#7a7568" }}>Soma dos municípios, 2016 a 2024</p>
+                </div>
+                <div className="px-3 pb-3">
+                  <ResponsiveContainer width="100%" height={200}>
+                    <AreaChart data={serieEvolucao}>
+                      <defs>
+                        <linearGradient id="colorTotalMT" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#2E7D32" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#2E7D32" stopOpacity={0.02} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e8e5dd" />
+                      <XAxis dataKey="ano" tick={{ fontSize: 11, fill: "#7a7568" }} />
+                      <YAxis tick={{ fontSize: 11, fill: "#7a7568" }} />
+                      <Tooltip
+                        contentStyle={{ background: "#fff", border: "1px solid #e8e5dd", borderRadius: "8px", fontSize: "12px" }}
+                        formatter={(value: number) => [`${value.toLocaleString("pt-BR")} km²`, "Desmatamento"]}
+                      />
+                      <Area type="monotone" dataKey="total" stroke="#2E7D32" strokeWidth={2} fill="url(#colorTotalMT)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
             </div>
           </div>
@@ -215,7 +304,6 @@ export default function MatoGrosso() {
         <section className="py-8" ref={detailRef} style={{ background: "#f9f8f5" }}>
           <div className="container">
             <div className="rounded-xl overflow-hidden" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
-              {/* Header */}
               <div className="px-6 py-5 flex items-center justify-between flex-wrap gap-3" style={{ borderBottom: "1px solid #f0ede7" }}>
                 <div>
                   <h3 className="text-xl font-bold" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
@@ -225,24 +313,19 @@ export default function MatoGrosso() {
                     {detail.bioma} — Área: {detail.area_km2.toLocaleString("pt-BR")} km² — Cobertura florestal: {detail.cobertura_florestal_pct}%
                   </p>
                 </div>
-                <button
-                  onClick={() => setSelectedMunicipio(null)}
-                  className="p-2 rounded-lg transition-colors"
-                  style={{ color: "#7a7568", background: "#f4f3ee" }}
-                >
+                <button onClick={() => setSelectedMunicipio(null)} className="p-2 rounded-lg" style={{ color: "#7a7568", background: "#f4f3ee" }}>
                   <X size={18} />
                 </button>
               </div>
 
-              {/* Indicadores */}
               <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 px-6 py-5" style={{ borderBottom: "1px solid #f0ede7" }}>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "rgba(191,54,12,0.08)" }}>
                     <TreePine size={18} style={{ color: "#BF360C" }} />
                   </div>
                   <div>
-                    <p className="text-lg font-bold" style={{ color: "#2c2417" }}>{detailStats.v24.toLocaleString("pt-BR")} km²</p>
-                    <p className="text-xs" style={{ color: "#9a958e" }}>Desmatamento 2024</p>
+                    <p className="text-lg font-bold" style={{ color: "#2c2417" }}>{detailStats.vAno.toLocaleString("pt-BR")} km²</p>
+                    <p className="text-xs" style={{ color: "#9a958e" }}>Desmatamento {selectedYear}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -253,7 +336,7 @@ export default function MatoGrosso() {
                     <p className="text-lg font-bold" style={{ color: detailStats.change < 0 ? "#2E7D32" : "#BF360C" }}>
                       {detailStats.change < 0 ? "↓" : "↑"} {Math.abs(detailStats.change).toFixed(1)}%
                     </p>
-                    <p className="text-xs" style={{ color: "#9a958e" }}>Var. 2023→2024</p>
+                    <p className="text-xs" style={{ color: "#9a958e" }}>Var. {detailStats.prevYear}→{selectedYear}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -276,7 +359,6 @@ export default function MatoGrosso() {
                 </div>
               </div>
 
-              {/* Gráficos */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
                 <div>
                   <h4 className="text-sm font-semibold mb-4" style={{ color: "#5a5448" }}>Série Histórica de Desmatamento (km²)</h4>
@@ -289,7 +371,11 @@ export default function MatoGrosso() {
                         contentStyle={{ background: "#fff", border: "1px solid #e8e5dd", borderRadius: "8px", fontSize: "12px" }}
                         formatter={(value: number) => [`${value.toLocaleString("pt-BR")} km²`, "Desmatamento"]}
                       />
-                      <Bar dataKey="desmatamento" fill="#8D6E63" radius={[4, 4, 0, 0]} />
+                      <Bar dataKey="desmatamento" radius={[4, 4, 0, 0]}>
+                        {detailSerie.map((entry) => (
+                          <Cell key={entry.ano} fill={entry.ano === selectedYear ? "#BF360C" : "#8D6E63"} />
+                        ))}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
@@ -357,7 +443,7 @@ export default function MatoGrosso() {
                       <span className="inline-flex items-center gap-1 justify-end">Floresta (%) <ArrowUpDown size={12} /></span>
                     </th>
                     <th className="text-right px-4 py-3 font-semibold" style={{ color: "#5a5448" }}>Protegida (km²)</th>
-                    <th className="text-right px-4 py-3 font-semibold cursor-pointer" style={{ color: "#5a5448" }} onClick={() => toggleSort("2024")}>
+                    <th className="text-right px-4 py-3 font-semibold cursor-pointer" style={{ color: "#5a5448" }} onClick={() => toggleSort("ano")}>
                       <span className="inline-flex items-center gap-1 justify-end">{selectedYear} (km²) <ArrowUpDown size={12} /></span>
                     </th>
                     <th className="text-center px-4 py-3 font-semibold" style={{ color: "#5a5448" }}>Detalhe</th>

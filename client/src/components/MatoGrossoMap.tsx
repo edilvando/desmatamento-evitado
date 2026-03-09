@@ -1,6 +1,7 @@
 /*
  * MatoGrossoMap.tsx — Mapa interativo do Mato Grosso por municípios com timeline
- * Carrega GeoJSON dos municípios e renderiza SVG com cores por desmatamento
+ * Sincronizado com a página via selectedYear/onYearChange
+ * Suporta filtro por bioma (destaca municípios do bioma, opacidade nos demais)
  */
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Play, Pause, SkipBack, SkipForward } from "lucide-react";
@@ -21,6 +22,9 @@ interface MatoGrossoMapProps {
   municipios: MunicipioData[];
   onSelectMunicipio?: (nome: string) => void;
   selectedMunicipio?: string | null;
+  selectedBioma?: string;
+  selectedYear?: string;
+  onYearChange?: (year: string) => void;
 }
 
 interface GeoFeature {
@@ -29,16 +33,16 @@ interface GeoFeature {
   geometry: { type: string; coordinates: number[][][] | number[][][][] };
 }
 
-interface Tooltip {
+interface TooltipData {
   x: number;
   y: number;
   nome: string;
   valor: number;
   ano: string;
   temDados: boolean;
+  bioma?: string;
 }
 
-// Projeção para o Mato Grosso
 function projectPoint(lon: number, lat: number, width: number, height: number): [number, number] {
   const minLon = -62, maxLon = -50, minLat = -18, maxLat = -7;
   const x = ((lon - minLon) / (maxLon - minLon)) * width;
@@ -71,7 +75,7 @@ function getColor(value: number, max: number, hasDados: boolean): string {
   const ratio = Math.min(value / max, 1);
   if (ratio < 0.2) {
     const t = ratio / 0.2;
-    return `rgb(${Math.round(76 + t * 63)},${Math.round(175 - t * 10)},${Math.round(80 - t * 10)})`;
+    return `rgb(${Math.round(46 + t * 93)},${Math.round(125 + t * 40)},${Math.round(50 + t * 20)})`;
   }
   if (ratio < 0.4) {
     const t = (ratio - 0.2) / 0.2;
@@ -91,36 +95,33 @@ function getColor(value: number, max: number, hasDados: boolean): string {
 
 const ANOS = ["2016","2017","2018","2019","2020","2021","2022","2023","2024"];
 
-export default function MatoGrossoMap({ municipios, onSelectMunicipio, selectedMunicipio }: MatoGrossoMapProps) {
+export default function MatoGrossoMap({ municipios, onSelectMunicipio, selectedMunicipio, selectedBioma = "Todos", selectedYear, onYearChange }: MatoGrossoMapProps) {
   const [geoData, setGeoData] = useState<GeoFeature[] | null>(null);
-  const [anoIdx, setAnoIdx] = useState(ANOS.length - 1);
   const [playing, setPlaying] = useState(false);
-  const [tooltip, setTooltip] = useState<Tooltip | null>(null);
+  const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const [loading, setLoading] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
-  const ano = ANOS[anoIdx];
+  // Use external year if provided, otherwise default to last
+  const anoIdx = selectedYear ? ANOS.indexOf(selectedYear) : ANOS.length - 1;
+  const ano = ANOS[Math.max(0, anoIdx >= 0 ? anoIdx : ANOS.length - 1)];
+  const effectiveIdx = Math.max(0, anoIdx >= 0 ? anoIdx : ANOS.length - 1);
   const W = 550, H = 500;
 
   useEffect(() => {
     fetch(MT_GEOJSON_URL)
       .then(r => r.json())
-      .then(data => {
-        setGeoData(data.features);
-        setLoading(false);
-      })
+      .then(data => { setGeoData(data.features); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
 
-  // Mapa nome -> dados
   const muniMap = useMemo(() => {
     const m: Record<string, MunicipioData> = {};
     for (const mun of municipios) m[mun.nome] = mun;
     return m;
   }, [municipios]);
 
-  // Máximo para escala
   const maxDesmatamento = useMemo(() => {
     let max = 0;
     for (const m of municipios) {
@@ -132,28 +133,24 @@ export default function MatoGrossoMap({ municipios, onSelectMunicipio, selectedM
     return max;
   }, [municipios]);
 
-  // Play/Pause
   useEffect(() => {
     if (playing) {
       intervalRef.current = setInterval(() => {
-        setAnoIdx(prev => {
-          if (prev >= ANOS.length - 1) {
-            setPlaying(false);
-            return prev;
-          }
-          return prev + 1;
-        });
+        const nextIdx = effectiveIdx + 1;
+        if (nextIdx >= ANOS.length) {
+          setPlaying(false);
+        } else {
+          onYearChange?.(ANOS[nextIdx]);
+        }
       }, 1000);
     }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [playing]);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [playing, effectiveIdx, onYearChange]);
 
   const handlePlay = useCallback(() => {
-    if (anoIdx >= ANOS.length - 1) setAnoIdx(0);
+    if (effectiveIdx >= ANOS.length - 1) onYearChange?.(ANOS[0]);
     setPlaying(true);
-  }, [anoIdx]);
+  }, [effectiveIdx, onYearChange]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent, name: string) => {
     const rect = svgRef.current?.getBoundingClientRect();
@@ -166,13 +163,25 @@ export default function MatoGrossoMap({ municipios, onSelectMunicipio, selectedM
       valor: mun?.desmatamento_anual[ano] || 0,
       ano,
       temDados: !!mun,
+      bioma: mun?.bioma,
     });
   }, [muniMap, ano]);
 
-  // Total MT no ano
   const totalAno = useMemo(() => {
-    return municipios.reduce((s, m) => s + (m.desmatamento_anual[ano] || 0), 0);
-  }, [municipios, ano]);
+    if (selectedBioma === "Todos") {
+      return municipios.reduce((s, m) => s + (m.desmatamento_anual[ano] || 0), 0);
+    }
+    return municipios
+      .filter(m => m.bioma.includes(selectedBioma))
+      .reduce((s, m) => s + (m.desmatamento_anual[ano] || 0), 0);
+  }, [municipios, ano, selectedBioma]);
+
+  const countFiltered = useMemo(() => {
+    if (selectedBioma === "Todos") return municipios.length;
+    return municipios.filter(m => m.bioma.includes(selectedBioma)).length;
+  }, [municipios, selectedBioma]);
+
+  const biomaLabel = selectedBioma === "Todos" ? "26 municípios monitorados" : `${countFiltered} municípios (${selectedBioma})`;
 
   if (loading) {
     return (
@@ -185,14 +194,13 @@ export default function MatoGrossoMap({ municipios, onSelectMunicipio, selectedM
 
   return (
     <div className="rounded-xl overflow-hidden" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
-      {/* Header */}
       <div className="px-5 pt-5 pb-3 flex items-center justify-between flex-wrap gap-3">
         <div>
           <h3 className="text-lg font-bold" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
             Mato Grosso — Municípios — {ano}
           </h3>
           <p className="text-sm" style={{ color: "#7a7568" }}>
-            Total (26 municípios monitorados): <span style={{ color: "#BF360C", fontWeight: 600 }}>{totalAno.toLocaleString("pt-BR")} km²</span>
+            Total ({biomaLabel}): <span style={{ color: "#BF360C", fontWeight: 600 }}>{totalAno.toLocaleString("pt-BR")} km²</span>
           </p>
         </div>
         <div className="text-right">
@@ -200,14 +208,8 @@ export default function MatoGrossoMap({ municipios, onSelectMunicipio, selectedM
         </div>
       </div>
 
-      {/* SVG Map */}
       <div className="relative px-3">
-        <svg
-          ref={svgRef}
-          viewBox={`0 0 ${W} ${H}`}
-          className="w-full"
-          style={{ maxHeight: "450px" }}
-        >
+        <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: "450px" }}>
           {geoData?.map((feat) => {
             const name = feat.properties.name;
             const mun = muniMap[name];
@@ -217,14 +219,18 @@ export default function MatoGrossoMap({ municipios, onSelectMunicipio, selectedM
             const isSelected = selectedMunicipio === name;
             const path = featureToPath(feat.geometry, W, H);
 
+            const inBioma = selectedBioma === "Todos" || (mun?.bioma?.includes(selectedBioma) ?? false);
+            const opacity = !hasDados ? 0.4 : (inBioma ? 1 : 0.2);
+
             return (
               <path
                 key={feat.properties.id}
                 d={path}
                 fill={color}
                 stroke={isSelected ? "#2c2417" : hasDados ? "#fff" : "#e0ddd5"}
-                strokeWidth={isSelected ? 2 : 0.5}
-                style={{ cursor: hasDados ? "pointer" : "default", transition: "fill 0.5s ease, stroke-width 0.2s" }}
+                strokeWidth={isSelected ? 2.5 : 0.5}
+                opacity={opacity}
+                style={{ cursor: hasDados ? "pointer" : "default", transition: "fill 0.5s ease, opacity 0.4s ease, stroke-width 0.2s" }}
                 onClick={() => hasDados && onSelectMunicipio?.(name)}
                 onMouseMove={(e) => handleMouseMove(e, name)}
                 onMouseLeave={() => setTooltip(null)}
@@ -233,28 +239,27 @@ export default function MatoGrossoMap({ municipios, onSelectMunicipio, selectedM
           })}
         </svg>
 
-        {/* Tooltip */}
         {tooltip && (
           <div
             className="absolute pointer-events-none rounded-lg px-3 py-2 shadow-lg z-10"
             style={{
-              left: tooltip.x,
-              top: tooltip.y,
+              left: tooltip.x, top: tooltip.y,
               transform: "translate(-50%, -100%)",
-              background: "rgba(44,36,23,0.92)",
-              color: "#fff",
+              background: "rgba(44,36,23,0.92)", color: "#fff",
             }}
           >
             <p className="text-xs font-semibold">{tooltip.nome}</p>
             {tooltip.temDados ? (
-              <p className="text-xs">{tooltip.ano}: <span style={{ color: "#a8d5a2" }}>{tooltip.valor.toLocaleString("pt-BR")} km²</span></p>
+              <>
+                <p className="text-xs">{tooltip.ano}: <span style={{ color: "#a8d5a2" }}>{tooltip.valor.toLocaleString("pt-BR")} km²</span></p>
+                {tooltip.bioma && <p className="text-xs" style={{ color: "#c8c0b0" }}>{tooltip.bioma}</p>}
+              </>
             ) : (
               <p className="text-xs" style={{ color: "#9a958e" }}>Sem dados detalhados</p>
             )}
           </div>
         )}
 
-        {/* Legenda */}
         <div className="absolute bottom-3 left-5 flex items-center gap-1">
           <span className="text-xs" style={{ color: "#7a7568" }}>Menor</span>
           <div className="flex h-3 rounded-sm overflow-hidden" style={{ width: "100px" }}>
@@ -265,59 +270,35 @@ export default function MatoGrossoMap({ municipios, onSelectMunicipio, selectedM
           <span className="text-xs" style={{ color: "#7a7568" }}>Maior</span>
         </div>
 
-        {/* Indicador de sem dados */}
         <div className="absolute bottom-3 right-5 flex items-center gap-1">
           <div className="w-3 h-3 rounded-sm" style={{ background: "#f0ede7", border: "1px solid #e0ddd5" }} />
           <span className="text-xs" style={{ color: "#9a958e" }}>Sem dados</span>
         </div>
       </div>
 
-      {/* Timeline Controls */}
       <div className="px-5 py-4" style={{ borderTop: "1px solid #f0ede7" }}>
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => { setPlaying(false); setAnoIdx(0); }}
-            className="p-1.5 rounded-md transition-colors"
-            style={{ color: "#7a7568" }}
-            title="Início"
-          >
+          <button onClick={() => { setPlaying(false); onYearChange?.(ANOS[0]); }} className="p-1.5 rounded-md" style={{ color: "#7a7568" }} title="Início">
             <SkipBack size={16} />
           </button>
-          <button
-            onClick={playing ? () => setPlaying(false) : handlePlay}
-            className="p-2 rounded-full transition-all"
-            style={{ background: "#2E7D32", color: "#fff" }}
-            title={playing ? "Pausar" : "Reproduzir"}
-          >
+          <button onClick={playing ? () => setPlaying(false) : handlePlay} className="p-2 rounded-full" style={{ background: "#2E7D32", color: "#fff" }} title={playing ? "Pausar" : "Reproduzir"}>
             {playing ? <Pause size={16} /> : <Play size={16} />}
           </button>
-          <button
-            onClick={() => { setPlaying(false); setAnoIdx(ANOS.length - 1); }}
-            className="p-1.5 rounded-md transition-colors"
-            style={{ color: "#7a7568" }}
-            title="Fim"
-          >
+          <button onClick={() => { setPlaying(false); onYearChange?.(ANOS[ANOS.length - 1]); }} className="p-1.5 rounded-md" style={{ color: "#7a7568" }} title="Fim">
             <SkipForward size={16} />
           </button>
           <div className="flex-1 flex items-center gap-2">
-            <span className="text-xs font-medium" style={{ color: "#5a5448", minWidth: "32px" }}>
-              {ANOS[0]}
-            </span>
+            <span className="text-xs font-medium" style={{ color: "#5a5448", minWidth: "32px" }}>{ANOS[0]}</span>
             <input
-              type="range"
-              min={0}
-              max={ANOS.length - 1}
-              value={anoIdx}
-              onChange={(e) => { setPlaying(false); setAnoIdx(Number(e.target.value)); }}
+              type="range" min={0} max={ANOS.length - 1} value={effectiveIdx}
+              onChange={(e) => { setPlaying(false); onYearChange?.(ANOS[Number(e.target.value)]); }}
               className="flex-1 h-1.5 rounded-full appearance-none cursor-pointer"
               style={{
-                background: `linear-gradient(to right, #2E7D32 ${(anoIdx / (ANOS.length - 1)) * 100}%, #e8e5dd ${(anoIdx / (ANOS.length - 1)) * 100}%)`,
+                background: `linear-gradient(to right, #2E7D32 ${(effectiveIdx / (ANOS.length - 1)) * 100}%, #e8e5dd ${(effectiveIdx / (ANOS.length - 1)) * 100}%)`,
                 accentColor: "#2E7D32",
               }}
             />
-            <span className="text-xs font-medium" style={{ color: "#5a5448", minWidth: "32px" }}>
-              {ANOS[ANOS.length - 1]}
-            </span>
+            <span className="text-xs font-medium" style={{ color: "#5a5448", minWidth: "32px" }}>{ANOS[ANOS.length - 1]}</span>
           </div>
           <span className="text-sm font-bold px-3 py-1 rounded-lg" style={{ background: "#f4f3ee", color: "#2c2417", minWidth: "50px", textAlign: "center" }}>
             {ano}

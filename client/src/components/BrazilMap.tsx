@@ -1,7 +1,7 @@
 /*
  * BrazilMap.tsx — Mapa interativo do Brasil com timeline animada
- * Carrega GeoJSON dos estados e renderiza SVG com cores por desmatamento
- * Inclui slider de ano, botão play/pause e tooltip
+ * Sincronizado com a página via selectedYear/onYearChange
+ * Suporta filtro por bioma (destaca estados do bioma, opacidade nos demais)
  */
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Play, Pause, SkipBack, SkipForward } from "lucide-react";
@@ -21,6 +21,9 @@ interface BrazilMapProps {
   estados: EstadoData[];
   onSelectEstado?: (sigla: string) => void;
   selectedEstado?: string | null;
+  selectedBioma?: string;
+  selectedYear?: string;
+  onYearChange?: (year: string) => void;
 }
 
 interface GeoFeature {
@@ -29,7 +32,7 @@ interface GeoFeature {
   geometry: { type: string; coordinates: number[][][] | number[][][][] };
 }
 
-interface Tooltip {
+interface TooltipData {
   x: number;
   y: number;
   sigla: string;
@@ -38,7 +41,6 @@ interface Tooltip {
   ano: string;
 }
 
-// Projeção simples para o Brasil
 function projectPoint(lon: number, lat: number, width: number, height: number): [number, number] {
   const minLon = -74.5, maxLon = -32, minLat = -34, maxLat = 6;
   const x = ((lon - minLon) / (maxLon - minLon)) * width;
@@ -68,61 +70,50 @@ function featureToPath(geometry: GeoFeature["geometry"], w: number, h: number): 
 function getColor(value: number, max: number): string {
   if (value <= 0) return "#e8e5dd";
   const ratio = Math.min(value / max, 1);
-  // Verde -> Amarelo -> Vermelho
   if (ratio < 0.25) {
     const t = ratio / 0.25;
-    const r = Math.round(46 + t * (168 - 46));
-    const g = Math.round(125 + t * (165 - 125));
-    const b = Math.round(50 + t * (81 - 50));
-    return `rgb(${r},${g},${b})`;
+    return `rgb(${Math.round(46 + t * 122)},${Math.round(125 + t * 40)},${Math.round(50 + t * 31)})`;
   }
   if (ratio < 0.5) {
     const t = (ratio - 0.25) / 0.25;
-    const r = Math.round(168 + t * (200 - 168));
-    const g = Math.round(165 + t * (169 - 165));
-    const b = Math.round(81 + t * (81 - 81));
-    return `rgb(${r},${g},${b})`;
+    return `rgb(${Math.round(168 + t * 32)},${Math.round(165 + t * 4)},${Math.round(81)})`;
   }
   if (ratio < 0.75) {
     const t = (ratio - 0.5) / 0.25;
-    const r = Math.round(200 + t * (191 - 200));
-    const g = Math.round(169 - t * (169 - 54));
-    const b = Math.round(81 - t * (81 - 12));
-    return `rgb(${r},${g},${b})`;
+    return `rgb(${Math.round(200 - t * 9)},${Math.round(169 - t * 115)},${Math.round(81 - t * 69)})`;
   }
   const t = (ratio - 0.75) / 0.25;
-  const r = Math.round(191 - t * (191 - 140));
-  const g = Math.round(54 - t * (54 - 20));
-  const b = Math.round(12 - t * (12 - 5));
-  return `rgb(${r},${g},${b})`;
+  return `rgb(${Math.round(191 - t * 51)},${Math.round(54 - t * 34)},${Math.round(12 - t * 7)})`;
 }
 
 const ANOS = ["2008","2009","2010","2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021","2022","2023","2024"];
 
-export default function BrazilMap({ estados, onSelectEstado, selectedEstado }: BrazilMapProps) {
+export default function BrazilMap({ estados, onSelectEstado, selectedEstado, selectedBioma = "Todos", selectedYear, onYearChange }: BrazilMapProps) {
   const [geoData, setGeoData] = useState<GeoFeature[] | null>(null);
-  const [anoIdx, setAnoIdx] = useState(ANOS.length - 1);
   const [playing, setPlaying] = useState(false);
-  const [tooltip, setTooltip] = useState<Tooltip | null>(null);
+  const [tooltip, setTooltip] = useState<TooltipData | null>(null);
   const [loading, setLoading] = useState(true);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
-  const ano = ANOS[anoIdx];
+  // Use external year if provided, otherwise internal
+  const anoIdx = selectedYear ? ANOS.indexOf(selectedYear) : ANOS.length - 1;
+  const ano = ANOS[Math.max(0, anoIdx)];
   const W = 600, H = 560;
 
-  // Carregar GeoJSON
+  const setAnoIdx = useCallback((idxOrFn: number | ((prev: number) => number)) => {
+    const newIdx = typeof idxOrFn === "function" ? idxOrFn(anoIdx) : idxOrFn;
+    const clampedIdx = Math.max(0, Math.min(ANOS.length - 1, newIdx));
+    onYearChange?.(ANOS[clampedIdx]);
+  }, [anoIdx, onYearChange]);
+
   useEffect(() => {
     fetch(BR_GEOJSON_URL)
       .then(r => r.json())
-      .then(data => {
-        setGeoData(data.features);
-        setLoading(false);
-      })
+      .then(data => { setGeoData(data.features); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
 
-  // Máximo de desmatamento para escala de cores
   const maxDesmatamento = useMemo(() => {
     let max = 0;
     for (const e of estados) {
@@ -134,35 +125,30 @@ export default function BrazilMap({ estados, onSelectEstado, selectedEstado }: B
     return max;
   }, [estados]);
 
-  // Mapa sigla -> dados
   const estadoMap = useMemo(() => {
     const m: Record<string, EstadoData> = {};
     for (const e of estados) m[e.sigla] = e;
     return m;
   }, [estados]);
 
-  // Play/Pause
   useEffect(() => {
     if (playing) {
       intervalRef.current = setInterval(() => {
-        setAnoIdx(prev => {
-          if (prev >= ANOS.length - 1) {
-            setPlaying(false);
-            return prev;
-          }
-          return prev + 1;
-        });
+        const nextIdx = anoIdx + 1;
+        if (nextIdx >= ANOS.length) {
+          setPlaying(false);
+        } else {
+          onYearChange?.(ANOS[nextIdx]);
+        }
       }, 800);
     }
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [playing]);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [playing, anoIdx, onYearChange]);
 
   const handlePlay = useCallback(() => {
-    if (anoIdx >= ANOS.length - 1) setAnoIdx(0);
+    if (anoIdx >= ANOS.length - 1) onYearChange?.(ANOS[0]);
     setPlaying(true);
-  }, [anoIdx]);
+  }, [anoIdx, onYearChange]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent, sigla: string) => {
     const rect = svgRef.current?.getBoundingClientRect();
@@ -179,10 +165,16 @@ export default function BrazilMap({ estados, onSelectEstado, selectedEstado }: B
     });
   }, [estadoMap, ano]);
 
-  // Total nacional no ano
   const totalAno = useMemo(() => {
-    return estados.reduce((s, e) => s + (e.desmatamento_anual[ano] || 0), 0);
-  }, [estados, ano]);
+    if (selectedBioma === "Todos") {
+      return estados.reduce((s, e) => s + (e.desmatamento_anual[ano] || 0), 0);
+    }
+    return estados
+      .filter(e => e.bioma_principal.includes(selectedBioma))
+      .reduce((s, e) => s + (e.desmatamento_anual[ano] || 0), 0);
+  }, [estados, ano, selectedBioma]);
+
+  const biomaLabel = selectedBioma === "Todos" ? "Total nacional" : `Total ${selectedBioma}`;
 
   if (loading) {
     return (
@@ -195,14 +187,13 @@ export default function BrazilMap({ estados, onSelectEstado, selectedEstado }: B
 
   return (
     <div className="rounded-xl overflow-hidden" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
-      {/* Header com ano e total */}
       <div className="px-5 pt-5 pb-3 flex items-center justify-between flex-wrap gap-3">
         <div>
           <h3 className="text-lg font-bold" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
             Mapa do Desmatamento — {ano}
           </h3>
           <p className="text-sm" style={{ color: "#7a7568" }}>
-            Total nacional: <span style={{ color: "#BF360C", fontWeight: 600 }}>{totalAno.toLocaleString("pt-BR")} km²</span>
+            {biomaLabel}: <span style={{ color: "#BF360C", fontWeight: 600 }}>{totalAno.toLocaleString("pt-BR")} km²</span>
           </p>
         </div>
         <div className="text-right">
@@ -210,14 +201,8 @@ export default function BrazilMap({ estados, onSelectEstado, selectedEstado }: B
         </div>
       </div>
 
-      {/* SVG Map */}
       <div className="relative px-3">
-        <svg
-          ref={svgRef}
-          viewBox={`0 0 ${W} ${H}`}
-          className="w-full"
-          style={{ maxHeight: "480px" }}
-        >
+        <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ maxHeight: "480px" }}>
           {geoData?.map((feat) => {
             const sigla = feat.properties.SIGLA;
             const est = estadoMap[sigla];
@@ -226,14 +211,18 @@ export default function BrazilMap({ estados, onSelectEstado, selectedEstado }: B
             const isSelected = selectedEstado === sigla;
             const path = featureToPath(feat.geometry, W, H);
 
+            const inBioma = selectedBioma === "Todos" || (est?.bioma_principal?.includes(selectedBioma) ?? false);
+            const opacity = inBioma ? 1 : 0.2;
+
             return (
               <path
                 key={sigla}
                 d={path}
                 fill={color}
                 stroke={isSelected ? "#2c2417" : "#fff"}
-                strokeWidth={isSelected ? 2 : 0.5}
-                style={{ cursor: "pointer", transition: "fill 0.4s ease, stroke-width 0.2s" }}
+                strokeWidth={isSelected ? 2.5 : 0.5}
+                opacity={opacity}
+                style={{ cursor: "pointer", transition: "fill 0.4s ease, opacity 0.4s ease, stroke-width 0.2s" }}
                 onClick={() => onSelectEstado?.(sigla)}
                 onMouseMove={(e) => handleMouseMove(e, sigla)}
                 onMouseLeave={() => setTooltip(null)}
@@ -242,16 +231,13 @@ export default function BrazilMap({ estados, onSelectEstado, selectedEstado }: B
           })}
         </svg>
 
-        {/* Tooltip */}
         {tooltip && (
           <div
             className="absolute pointer-events-none rounded-lg px-3 py-2 shadow-lg z-10"
             style={{
-              left: tooltip.x,
-              top: tooltip.y,
+              left: tooltip.x, top: tooltip.y,
               transform: "translate(-50%, -100%)",
-              background: "rgba(44,36,23,0.92)",
-              color: "#fff",
+              background: "rgba(44,36,23,0.92)", color: "#fff",
             }}
           >
             <p className="text-xs font-semibold">{tooltip.nome} ({tooltip.sigla})</p>
@@ -259,7 +245,6 @@ export default function BrazilMap({ estados, onSelectEstado, selectedEstado }: B
           </div>
         )}
 
-        {/* Legenda */}
         <div className="absolute bottom-3 left-5 flex items-center gap-1">
           <span className="text-xs" style={{ color: "#7a7568" }}>Menor</span>
           <div className="flex h-3 rounded-sm overflow-hidden" style={{ width: "100px" }}>
@@ -271,52 +256,29 @@ export default function BrazilMap({ estados, onSelectEstado, selectedEstado }: B
         </div>
       </div>
 
-      {/* Timeline Controls */}
       <div className="px-5 py-4" style={{ borderTop: "1px solid #f0ede7" }}>
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => { setPlaying(false); setAnoIdx(0); }}
-            className="p-1.5 rounded-md transition-colors"
-            style={{ color: "#7a7568" }}
-            title="Início"
-          >
+          <button onClick={() => { setPlaying(false); setAnoIdx(0); }} className="p-1.5 rounded-md" style={{ color: "#7a7568" }} title="Início">
             <SkipBack size={16} />
           </button>
-          <button
-            onClick={playing ? () => setPlaying(false) : handlePlay}
-            className="p-2 rounded-full transition-all"
-            style={{ background: "#2E7D32", color: "#fff" }}
-            title={playing ? "Pausar" : "Reproduzir"}
-          >
+          <button onClick={playing ? () => setPlaying(false) : handlePlay} className="p-2 rounded-full" style={{ background: "#2E7D32", color: "#fff" }} title={playing ? "Pausar" : "Reproduzir"}>
             {playing ? <Pause size={16} /> : <Play size={16} />}
           </button>
-          <button
-            onClick={() => { setPlaying(false); setAnoIdx(ANOS.length - 1); }}
-            className="p-1.5 rounded-md transition-colors"
-            style={{ color: "#7a7568" }}
-            title="Fim"
-          >
+          <button onClick={() => { setPlaying(false); setAnoIdx(ANOS.length - 1); }} className="p-1.5 rounded-md" style={{ color: "#7a7568" }} title="Fim">
             <SkipForward size={16} />
           </button>
           <div className="flex-1 flex items-center gap-2">
-            <span className="text-xs font-medium" style={{ color: "#5a5448", minWidth: "32px" }}>
-              {ANOS[0]}
-            </span>
+            <span className="text-xs font-medium" style={{ color: "#5a5448", minWidth: "32px" }}>{ANOS[0]}</span>
             <input
-              type="range"
-              min={0}
-              max={ANOS.length - 1}
-              value={anoIdx}
-              onChange={(e) => { setPlaying(false); setAnoIdx(Number(e.target.value)); }}
+              type="range" min={0} max={ANOS.length - 1} value={Math.max(0, anoIdx)}
+              onChange={(e) => { setPlaying(false); onYearChange?.(ANOS[Number(e.target.value)]); }}
               className="flex-1 h-1.5 rounded-full appearance-none cursor-pointer"
               style={{
-                background: `linear-gradient(to right, #2E7D32 ${(anoIdx / (ANOS.length - 1)) * 100}%, #e8e5dd ${(anoIdx / (ANOS.length - 1)) * 100}%)`,
+                background: `linear-gradient(to right, #2E7D32 ${(Math.max(0, anoIdx) / (ANOS.length - 1)) * 100}%, #e8e5dd ${(Math.max(0, anoIdx) / (ANOS.length - 1)) * 100}%)`,
                 accentColor: "#2E7D32",
               }}
             />
-            <span className="text-xs font-medium" style={{ color: "#5a5448", minWidth: "32px" }}>
-              {ANOS[ANOS.length - 1]}
-            </span>
+            <span className="text-xs font-medium" style={{ color: "#5a5448", minWidth: "32px" }}>{ANOS[ANOS.length - 1]}</span>
           </div>
           <span className="text-sm font-bold px-3 py-1 rounded-lg" style={{ background: "#f4f3ee", color: "#2c2417", minWidth: "50px", textAlign: "center" }}>
             {ano}

@@ -1,4 +1,16 @@
-# TODO - Melhorias v2
+# TODO - Melhorias v3
+
+## Filtro por Bioma nos Mapas
+- [ ] Mapa do Brasil: filtro por bioma (destaca/opacidade nos estados do bioma)
+- [ ] Mapa do MT: filtro por bioma (Amazônia, Cerrado, Amazônia/Cerrado)
+
+## Seletor de Anos nas Tabelas
+- [ ] Tabela de Estados: seletor de ano (muda coluna de desmatamento)
+- [ ] Tabela de MT: seletor de ano já existe, integrar melhor
+- [ ] Gráficos de barras mudam conforme ano selecionado
+
+---
+# CONCLUÍDO - Melhorias v2
 
 ## Mapa Interativo
 - [ ] Criar componente de mapa SVG do Brasil com paths dos estados
