@@ -1,21 +1,13 @@
-# TODO - Expansão 141 Municípios do MT
+# TODO - Preparar para GitHub
 
-## Coleta de Dados
-- [ ] Obter lista completa dos 141 municípios do MT com códigos IBGE
-- [ ] Coletar dados PRODES de desmatamento por município via TerraBrasilis API
-- [ ] Série histórica 2008-2024 para cada município
+## Pasta /data
+- [ ] Criar pasta data/ no projeto
+- [ ] Exportar CSV dos estados com série histórica
+- [ ] Exportar CSV dos 141 municípios do MT
+- [ ] Copiar JSON processado
+- [ ] Criar README.md da pasta data com fontes e metodologia
 
-## Processamento
-- [ ] Gerar JSON com todos os 141 municípios
-- [ ] Calcular desmatamento evitado para cada município
-- [ ] Classificar biomas por município (Amazônia, Cerrado, Pantanal)
-
-## Sistema Web
-- [ ] Atualizar MatoGrossoMap para renderizar 141 municípios
-- [ ] Adicionar busca/filtro para facilitar navegação entre municípios
-- [ ] Ajustar performance para lidar com mais dados
-
-## Testes
-- [ ] Verificar dados de municípios conhecidos contra fontes oficiais
-- [ ] Testar filtros por bioma com os novos municípios
-- [ ] Checkpoint final
+## README.md principal
+- [ ] Criar README.md do projeto para GitHub
+- [ ] Incluir instruções de instalação local
+- [ ] Documentar tecnologias e estrutura
