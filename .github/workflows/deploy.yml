@@ -18,34 +18,39 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - [cite_start]name: Checkout [cite: 77]
+        [cite_start]uses: actions/checkout@v4 [cite: 78]
+
+      - [cite_start]name: Setup Node [cite: 79]
+        [cite_start]uses: actions/setup-node@v4 [cite: 80]
         with:
-          node-version: 22
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+          [cite_start]node-version: 22 [cite: 82]
+
+      - [cite_start]name: Setup pnpm [cite: 83]
+        [cite_start]uses: pnpm/action-setup@v4 [cite: 84]
+        # Removida a linha "version: 10" para evitar o erro de multiplas versões 
+
+      - [cite_start]name: Install dependencies [cite: 87]
+        [cite_start]run: pnpm install [cite: 87]
+
+      - [cite_start]name: Build [cite: 88]
+        [cite_start]run: pnpm build [cite: 89]
+
+      - [cite_start]name: Setup Pages [cite: 90]
+        [cite_start]uses: actions/configure-pages@v5 [cite: 91]
+
+      - [cite_start]name: Upload artifact [cite: 92]
+        [cite_start]uses: actions/upload-pages-artifact@v3 [cite: 93]
         with:
-          version: 10
-      - name: Install dependencies
-        run: pnpm install
-      - name: Build
-        run: pnpm build
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: "./dist/public"
+          [cite_start]path: "./dist/public" [cite: 96]
 
   deploy:
-    needs: build
-    runs-on: ubuntu-latest
+    [cite_start]needs: build [cite: 100]
+    [cite_start]runs-on: ubuntu-latest [cite: 99]
     environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      [cite_start]name: github-pages [cite: 98]
+      [cite_start]url: ${{ steps.deployment.outputs.page_url }} [cite: 99]
     steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - [cite_start]name: Deploy to GitHub Pages [cite: 102]
+        [cite_start]id: deployment [cite: 103]
+        [cite_start]uses: actions/deploy-pages@v4 [cite: 104]
