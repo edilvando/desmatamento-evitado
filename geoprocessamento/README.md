@@ -45,8 +45,9 @@ python run_all.py --skip-download
 | 05 | 05_cultivabilidade.py | Componente C (pressão agropecuária) | rasters/componente_c.tif |
 | 06 | 06_extraibilidade.py | Componente E (recursos florestais/minerais) | rasters/componente_e.tif |
 | 07 | 07_composicao_aceu.py | Risco bruto + classificação em quintis | rasters/risco_aceu.tif |
+| 07b | 07b_desmatamento_evitado_raster.py | Raster de desmatamento evitado (ACEU x PRODES) | rasters/desmatamento_evitado.tif |
 | 08 | 08_estatisticas.py | Estatísticas zonais por município | output/desmatamento_evitado_mt.csv |
-| 09 | 09_gerar_tiles.py | Tiles PNG para visualização web | tiles/{z}/{x}/{y}.png |
+| 09 | 09_gerar_tiles.py | Tiles PNG para visualização web (2 camadas) | tiles/risco/ e tiles/evitado/ |
 | 10 | 10_copiar_tiles.py | Copiar tiles para o frontend | client/public/tiles/ |
 
 ## Modelo ACEU

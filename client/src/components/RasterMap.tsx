@@ -1,10 +1,10 @@
 /**
- * RasterMap.tsx — Mapa interativo com tiles de risco ACEU
- * Usa Leaflet + react-leaflet para exibir o raster de probabilidade
- * de desmatamento sobre um mapa base, com zoom e interação.
+ * RasterMap.tsx — Mapa interativo com tiles de risco ACEU e desmatamento evitado
+ * Usa Leaflet + react-leaflet para exibir rasters sobre mapa base.
+ * Suporta toggle entre camadas: risco de desmatamento e desmatamento evitado.
  */
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, GeoJSON, useMap, LayersControl } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import type { FeatureCollection } from "geojson";
 
@@ -30,12 +30,24 @@ const CLASSES_RISCO = [
   { classe: 5, nome: "Risco muito alto", cor: "#DC1414", prob: "90%" },
 ];
 
+// Legenda de classes de desmatamento evitado
+const CLASSES_EVITADO = [
+  { classe: 1, nome: "Floresta mantida (esperado)", cor: "#C8C8C8" },
+  { classe: 2, nome: "Parcialmente evitado", cor: "#ADD8E6" },
+  { classe: 3, nome: "Desmatamento evitado", cor: "#008000" },
+  { classe: 4, nome: "Fortemente evitado", cor: "#005000" },
+  { classe: 5, nome: "Perda confirmada", cor: "#DC1414" },
+  { classe: 6, nome: "Perda inesperada", cor: "#800080" },
+];
+
+type CamadaAtiva = "risco" | "evitado";
+
 interface RasterMapProps {
-  tilesUrl?: string;
   showLegend?: boolean;
   showMunicipios?: boolean;
   onMunicipioClick?: (codigo: string, nome: string) => void;
   className?: string;
+  camadaInicial?: CamadaAtiva;
 }
 
 function FitBounds() {
@@ -51,13 +63,14 @@ function FitBounds() {
 }
 
 export default function RasterMap({
-  tilesUrl = "/tiles/{z}/{x}/{y}.png",
   showLegend = true,
   showMunicipios = true,
   onMunicipioClick,
   className = "",
+  camadaInicial = "risco",
 }: RasterMapProps) {
   const [municipiosGeo, setMunicipiosGeo] = useState<FeatureCollection | null>(null);
+  const [camadaAtiva, setCamadaAtiva] = useState<CamadaAtiva>(camadaInicial);
 
   // Carregar GeoJSON dos municípios para overlay
   useEffect(() => {
@@ -74,8 +87,42 @@ export default function RasterMap({
     }
   }, [showMunicipios]);
 
+  const tilesUrl =
+    camadaAtiva === "risco"
+      ? "/tiles/risco/{z}/{x}/{y}.png"
+      : "/tiles/evitado/{z}/{x}/{y}.png";
+
+  const legendaAtiva = camadaAtiva === "risco" ? CLASSES_RISCO : CLASSES_EVITADO;
+  const tituloLegenda =
+    camadaAtiva === "risco" ? "Risco de Desmatamento" : "Desmatamento Evitado";
+
   return (
     <div className={`relative w-full ${className}`} style={{ minHeight: "500px" }}>
+      {/* Seletor de camada */}
+      <div className="absolute top-4 right-4 z-[1000] bg-white/95 rounded-lg shadow-md p-2">
+        <p className="text-xs text-gray-500 mb-1.5 px-1">Camada</p>
+        <button
+          onClick={() => setCamadaAtiva("risco")}
+          className={`block w-full text-left px-3 py-1.5 rounded text-sm transition-colors ${
+            camadaAtiva === "risco"
+              ? "bg-green-700 text-white"
+              : "text-gray-700 hover:bg-gray-100"
+          }`}
+        >
+          Risco de Desmatamento
+        </button>
+        <button
+          onClick={() => setCamadaAtiva("evitado")}
+          className={`block w-full text-left px-3 py-1.5 rounded text-sm transition-colors ${
+            camadaAtiva === "evitado"
+              ? "bg-green-700 text-white"
+              : "text-gray-700 hover:bg-gray-100"
+          }`}
+        >
+          Desmatamento Evitado
+        </button>
+      </div>
+
       <MapContainer
         center={[TILES_METADATA.center.lat, TILES_METADATA.center.lon]}
         zoom={6}
@@ -91,8 +138,9 @@ export default function RasterMap({
           opacity={0.6}
         />
 
-        {/* Tiles do risco ACEU (gerados pelo pipeline Python) */}
+        {/* Tiles da camada ativa (risco ou desmatamento evitado) */}
         <TileLayer
+          key={camadaAtiva}
           url={tilesUrl}
           opacity={0.75}
           tms={false}
@@ -124,18 +172,19 @@ export default function RasterMap({
         <FitBounds />
       </MapContainer>
 
-      {/* Legenda */}
+      {/* Legenda dinâmica */}
       {showLegend && (
-        <div className="absolute bottom-4 left-4 z-[1000] bg-white/95 rounded-lg p-3 shadow-md text-sm">
-          <p className="font-medium text-gray-700 mb-2">Risco de Desmatamento</p>
-          {CLASSES_RISCO.map((c) => (
+        <div className="absolute bottom-4 left-4 z-[1000] bg-white/95 rounded-lg p-3 shadow-md text-sm max-w-[220px]">
+          <p className="font-medium text-gray-700 mb-2">{tituloLegenda}</p>
+          {legendaAtiva.map((c) => (
             <div key={c.classe} className="flex items-center gap-2 mb-1">
               <div
-                className="w-4 h-4 rounded-sm"
-                style={{ backgroundColor: c.cor, opacity: 0.8 }}
+                className="w-4 h-4 rounded-sm flex-shrink-0"
+                style={{ backgroundColor: c.cor, opacity: 0.85 }}
               />
               <span className="text-gray-600 text-xs">
-                {c.nome} ({c.prob})
+                {c.nome}
+                {"prob" in c ? ` (${(c as any).prob})` : ""}
               </span>
             </div>
           ))}

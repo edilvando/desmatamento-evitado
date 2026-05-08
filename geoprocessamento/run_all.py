@@ -38,6 +38,7 @@ ETAPAS = [
     ("05_cultivabilidade", "Componente C - Cultivabilidade"),
     ("06_extraibilidade", "Componente E - Extraibilidade"),
     ("07_composicao_aceu", "Composição ACEU"),
+    ("07b_desmatamento_evitado_raster", "Raster de Desmatamento Evitado"),
     ("08_estatisticas", "Estatísticas zonais"),
     ("09_gerar_tiles", "Geração de tiles"),
     ("10_copiar_tiles", "Copiar tiles para frontend"),

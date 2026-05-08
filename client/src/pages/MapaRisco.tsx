@@ -1,12 +1,12 @@
 /**
- * MapaRisco.tsx — Visualização do raster de risco ACEU
- * Mapa interativo com tiles de probabilidade de desmatamento
- * O usuário pode dar zoom e ver o raster pixel a pixel
+ * MapaRisco.tsx — Visualização do raster de risco ACEU e desmatamento evitado
+ * Mapa interativo com tiles de probabilidade de desmatamento e desmatamento evitado
+ * O usuário pode dar zoom, alternar camadas e ver o raster pixel a pixel
  */
 import Layout from "@/components/Layout";
 import RasterMap from "@/components/RasterMap";
 import { useState } from "react";
-import { Layers, Info, ZoomIn } from "lucide-react";
+import { Layers, Info, ZoomIn, ShieldCheck, TreePine } from "lucide-react";
 
 export default function MapaRisco() {
   const [selectedMunicipio, setSelectedMunicipio] = useState<{
@@ -26,11 +26,12 @@ export default function MapaRisco() {
             </span>
           </div>
           <h1 className="text-3xl md:text-4xl font-serif font-bold mb-3">
-            Mapa de Risco de Desmatamento
+            Mapa de Risco e Desmatamento Evitado
           </h1>
           <p className="text-green-100/80 max-w-2xl text-lg">
-            Visualização pixel a pixel da probabilidade de desmatamento no Mato Grosso,
-            calculada pelo modelo ACEU (Acessibilidade, Cultivabilidade, Extraibilidade, Proteção).
+            Visualização pixel a pixel do risco de desmatamento e das áreas onde o
+            desmatamento foi efetivamente evitado no Mato Grosso. Alterne entre as
+            camadas usando o controle no canto superior direito do mapa.
           </p>
         </div>
       </section>
@@ -40,9 +41,9 @@ export default function MapaRisco() {
         <div className="max-w-7xl mx-auto flex items-center gap-3 text-amber-800 text-sm">
           <Info className="w-4 h-4 flex-shrink-0" />
           <p>
-            <span className="font-medium">Como usar:</span> Use o scroll para dar zoom no mapa.
-            Cada pixel colorido representa a classe de risco de desmatamento naquele ponto
-            (resolução original de 30 metros). Clique em um município para ver detalhes.
+            Use o scroll para dar zoom. Alterne entre as camadas "Risco de Desmatamento"
+            e "Desmatamento Evitado" no controle superior direito. Clique em um município
+            para ver detalhes.
           </p>
         </div>
       </section>
@@ -57,6 +58,7 @@ export default function MapaRisco() {
                 className="h-[600px] rounded-lg shadow-md border border-gray-200"
                 showLegend={true}
                 showMunicipios={true}
+                camadaInicial="risco"
                 onMunicipioClick={(codigo, nome) =>
                   setSelectedMunicipio({ codigo, nome })
                 }
@@ -75,26 +77,22 @@ export default function MapaRisco() {
                     Código IBGE: {selectedMunicipio.codigo}
                   </p>
                   <p className="text-sm text-gray-500 mt-2">
-                    Os dados detalhados de risco por classe serão exibidos aqui
-                    após a execução do pipeline ACEU.
+                    Os dados detalhados de risco e desmatamento evitado por classe
+                    serão exibidos aqui após a execução do pipeline ACEU.
                   </p>
                 </div>
               )}
 
-              {/* Card de metodologia */}
+              {/* Card Risco */}
               <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
                 <h3 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
-                  <ZoomIn className="w-4 h-4" />
-                  Sobre o Raster
+                  <ZoomIn className="w-4 h-4 text-orange-600" />
+                  Camada: Risco
                 </h3>
                 <div className="space-y-2 text-sm text-gray-600">
                   <p>
-                    O mapa exibe o raster de risco de desmatamento gerado pelo
-                    modelo ACEU em resolução de 30 metros.
-                  </p>
-                  <p>
-                    Cada pixel recebe uma classe de risco (1 a 5) baseada na
-                    combinação de 4 fatores espaciais:
+                    Probabilidade de desmatamento em 20 anos, calculada pela
+                    combinação dos fatores ACEU:
                   </p>
                   <ul className="list-none space-y-1 mt-2">
                     <li className="flex items-start gap-2">
@@ -117,6 +115,38 @@ export default function MapaRisco() {
                 </div>
               </div>
 
+              {/* Card Desmatamento Evitado */}
+              <div className="bg-white rounded-lg border border-green-200 p-4 shadow-sm">
+                <h3 className="font-medium text-gray-800 mb-3 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-green-700" />
+                  Camada: Desmatamento Evitado
+                </h3>
+                <div className="space-y-2 text-sm text-gray-600">
+                  <p>
+                    Cruzamento do risco ACEU com o desmatamento observado (PRODES/MapBiomas).
+                    Mostra onde a floresta foi preservada apesar do alto risco.
+                  </p>
+                  <div className="mt-2 space-y-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: "#008000" }} />
+                      <span className="text-xs">Desmatamento evitado</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: "#005000" }} />
+                      <span className="text-xs">Fortemente evitado</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: "#DC1414" }} />
+                      <span className="text-xs">Perda confirmada</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: "#800080" }} />
+                      <span className="text-xs">Perda inesperada</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Fórmula */}
               <div className="bg-gray-50 rounded-lg border border-gray-200 p-4">
                 <h4 className="font-medium text-gray-700 text-sm mb-2">Fórmula</h4>
@@ -125,6 +155,7 @@ export default function MapaRisco() {
                 </code>
                 <p className="text-xs text-gray-500 mt-2">
                   Classificado em quintis sobre pixels de floresta de referência.
+                  Desmatamento evitado = floresta mantida em pixels de risco alto.
                 </p>
               </div>
 
