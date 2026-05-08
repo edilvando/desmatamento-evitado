@@ -47,6 +47,7 @@ python run_all.py --skip-download
 | 07 | 07_composicao_aceu.py | Risco bruto + classificação em quintis | rasters/risco_aceu.tif |
 | 08 | 08_estatisticas.py | Estatísticas zonais por município | output/desmatamento_evitado_mt.csv |
 | 09 | 09_gerar_tiles.py | Tiles PNG para visualização web | tiles/{z}/{x}/{y}.png |
+| 10 | 10_copiar_tiles.py | Copiar tiles para o frontend | client/public/tiles/ |
 
 ## Modelo ACEU
 
@@ -84,17 +85,40 @@ Onde A1..A5 são as áreas florestais do município m em cada classe de risco, e
 | Mineração | ANM/SIGMINE | geo.anm.gov.br |
 | Desmatamento observado | PRODES/INPE | terrabrasilis.dpi.inpe.br |
 
-## Integração com o Frontend
+## Notebook Exploratório
 
-Os tiles gerados na etapa 09 são servidos como arquivos estáticos pelo Vite. O frontend usa Leaflet para exibir o raster de risco sobre um mapa base, permitindo zoom e interação.
+O arquivo `notebook_exploratorio.ipynb` permite validar visualmente cada componente antes de consolidar os resultados. Abra no VS Code (extensão Jupyter) ou no JupyterLab:
 
 ```bash
-# Copiar tiles para o frontend
-cp -r tiles/ ../client/public/tiles/
+jupyter lab notebook_exploratorio.ipynb
+```
 
-# Iniciar o frontend
+O notebook inclui:
+- Visualização da máscara e grade de referência
+- Mapas de cada componente (A, C, E, U) com legendas
+- Painel comparativo dos 4 componentes lado a lado
+- Histograma do risco bruto e quintis
+- Zoom em regiões de interesse
+- Estatísticas por município (top 20)
+
+## Integração com o Frontend
+
+Após gerar os tiles (etapa 09), execute a etapa 10 para copiar automaticamente para o frontend:
+
+```bash
+python 10_copiar_tiles.py
+```
+
+Ou manualmente:
+```bash
+cp -r tiles/ ../client/public/tiles/
+```
+
+Depois inicie o frontend:
+```bash
 cd ..
 pnpm dev
+# Abrir: http://localhost:3000/desmatamento-evitado/mapa-risco
 ```
 
 ## Referências

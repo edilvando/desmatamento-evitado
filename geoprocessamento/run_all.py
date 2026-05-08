@@ -40,6 +40,7 @@ ETAPAS = [
     ("07_composicao_aceu", "Composição ACEU"),
     ("08_estatisticas", "Estatísticas zonais"),
     ("09_gerar_tiles", "Geração de tiles"),
+    ("10_copiar_tiles", "Copiar tiles para frontend"),
 ]
 
 
