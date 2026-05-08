@@ -1,18 +1,184 @@
 /**
  * MapaRisco.tsx — Visualização do raster de risco ACEU e desmatamento evitado
- * Mapa interativo com tiles de probabilidade de desmatamento e desmatamento evitado
- * O usuário pode dar zoom, alternar camadas e ver o raster pixel a pixel
+ * Mapa interativo com tiles + painel de estatísticas por município
  */
 import Layout from "@/components/Layout";
 import RasterMap from "@/components/RasterMap";
-import { useState } from "react";
-import { Layers, Info, ZoomIn, ShieldCheck, TreePine } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { Layers, Info, ZoomIn, ShieldCheck, BarChart3, X } from "lucide-react";
+
+interface MunicipioStats {
+  cod_municipio: string;
+  nome_municipio: string;
+  area_total_ha: number;
+  floresta_referencia_ha: number;
+  floresta_atual_ha: number;
+  desmatado_ha: number;
+  perda_esperada_ha: number;
+  desmatamento_evitado_ha: number;
+  taxa_protecao_pct: number;
+  classe_risco_1_ha: number;
+  classe_risco_2_ha: number;
+  classe_risco_3_ha: number;
+  classe_risco_4_ha: number;
+  classe_risco_5_ha: number;
+}
+
+function MiniBarChart({ dados }: { dados: { label: string; valor: number; cor: string }[] }) {
+  const maxValor = Math.max(...dados.map((d) => d.valor), 1);
+  return (
+    <div className="space-y-1.5">
+      {dados.map((d) => (
+        <div key={d.label} className="flex items-center gap-2">
+          <span className="text-xs text-gray-500 w-24 truncate">{d.label}</span>
+          <div className="flex-1 h-4 bg-gray-100 rounded overflow-hidden">
+            <div
+              className="h-full rounded transition-all duration-500"
+              style={{
+                width: `${(d.valor / maxValor) * 100}%`,
+                backgroundColor: d.cor,
+              }}
+            />
+          </div>
+          <span className="text-xs text-gray-600 w-16 text-right">
+            {d.valor.toLocaleString("pt-BR")} ha
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PainelEstatisticas({
+  stats,
+  onClose,
+}: {
+  stats: MunicipioStats;
+  onClose: () => void;
+}) {
+  const dadosRisco = useMemo(
+    () => [
+      { label: "Muito baixo", valor: stats.classe_risco_1_ha, cor: "#228B22" },
+      { label: "Baixo", valor: stats.classe_risco_2_ha, cor: "#90EE90" },
+      { label: "Médio", valor: stats.classe_risco_3_ha, cor: "#CCCC00" },
+      { label: "Alto", valor: stats.classe_risco_4_ha, cor: "#FFA500" },
+      { label: "Muito alto", valor: stats.classe_risco_5_ha, cor: "#DC1414" },
+    ],
+    [stats]
+  );
+
+  const dadosBalanco = useMemo(
+    () => [
+      { label: "Floresta atual", valor: stats.floresta_atual_ha, cor: "#228B22" },
+      { label: "Desm. evitado", valor: stats.desmatamento_evitado_ha, cor: "#008000" },
+      { label: "Desmatado", valor: stats.desmatado_ha, cor: "#DC1414" },
+    ],
+    [stats]
+  );
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-md">
+      <div className="flex items-start justify-between mb-3">
+        <div>
+          <h3 className="font-medium text-gray-800">{stats.nome_municipio}</h3>
+          <p className="text-xs text-gray-400">IBGE: {stats.cod_municipio}</p>
+        </div>
+        <button
+          onClick={onClose}
+          className="text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Indicadores principais */}
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        <div className="bg-green-50 rounded p-2 text-center">
+          <p className="text-lg font-semibold text-green-800">
+            {stats.desmatamento_evitado_ha.toLocaleString("pt-BR")}
+          </p>
+          <p className="text-xs text-green-600">ha evitados</p>
+        </div>
+        <div className="bg-blue-50 rounded p-2 text-center">
+          <p className="text-lg font-semibold text-blue-800">
+            {stats.taxa_protecao_pct}%
+          </p>
+          <p className="text-xs text-blue-600">taxa proteção</p>
+        </div>
+      </div>
+
+      {/* Balanço florestal */}
+      <div className="mb-4">
+        <p className="text-xs font-medium text-gray-600 mb-2 flex items-center gap-1">
+          <BarChart3 className="w-3 h-3" /> Balanço Florestal
+        </p>
+        <MiniBarChart dados={dadosBalanco} />
+      </div>
+
+      {/* Distribuição por classe de risco */}
+      <div>
+        <p className="text-xs font-medium text-gray-600 mb-2">
+          Distribuição por Classe de Risco
+        </p>
+        <MiniBarChart dados={dadosRisco} />
+      </div>
+
+      {/* Resumo numérico */}
+      <div className="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-500 space-y-0.5">
+        <div className="flex justify-between">
+          <span>Área total:</span>
+          <span>{stats.area_total_ha.toLocaleString("pt-BR")} ha</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Floresta referência (2008):</span>
+          <span>{stats.floresta_referencia_ha.toLocaleString("pt-BR")} ha</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Perda esperada (modelo):</span>
+          <span>{stats.perda_esperada_ha.toLocaleString("pt-BR")} ha</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Perda observada:</span>
+          <span>{stats.desmatado_ha.toLocaleString("pt-BR")} ha</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function MapaRisco() {
   const [selectedMunicipio, setSelectedMunicipio] = useState<{
     codigo: string;
     nome: string;
   } | null>(null);
+
+  const [allStats, setAllStats] = useState<MunicipioStats[]>([]);
+  const [municipioStats, setMunicipioStats] = useState<MunicipioStats | null>(null);
+
+  // Carregar estatísticas do JSON gerado pelo pipeline
+  useEffect(() => {
+    fetch("/tiles/estatisticas_municipios.json")
+      .then((r) => {
+        if (r.ok) return r.json();
+        return null;
+      })
+      .then((data) => {
+        if (data) setAllStats(data);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Quando um município é selecionado, buscar suas estatísticas
+  useEffect(() => {
+    if (!selectedMunicipio || allStats.length === 0) {
+      setMunicipioStats(null);
+      return;
+    }
+    const found = allStats.find(
+      (s) => s.cod_municipio === selectedMunicipio.codigo
+    );
+    setMunicipioStats(found || null);
+  }, [selectedMunicipio, allStats]);
 
   return (
     <Layout>
@@ -31,7 +197,7 @@ export default function MapaRisco() {
           <p className="text-green-100/80 max-w-2xl text-lg">
             Visualização pixel a pixel do risco de desmatamento e das áreas onde o
             desmatamento foi efetivamente evitado no Mato Grosso. Alterne entre as
-            camadas usando o controle no canto superior direito do mapa.
+            camadas e clique nos municípios para ver estatísticas detalhadas.
           </p>
         </div>
       </section>
@@ -41,9 +207,9 @@ export default function MapaRisco() {
         <div className="max-w-7xl mx-auto flex items-center gap-3 text-amber-800 text-sm">
           <Info className="w-4 h-4 flex-shrink-0" />
           <p>
-            Use o scroll para dar zoom. Alterne entre as camadas "Risco de Desmatamento"
-            e "Desmatamento Evitado" no controle superior direito. Clique em um município
-            para ver detalhes.
+            Use o scroll para dar zoom. Alterne entre as camadas no controle superior
+            direito do mapa. Clique em um município para ver estatísticas de
+            desmatamento evitado em hectares.
           </p>
         </div>
       </section>
@@ -67,18 +233,37 @@ export default function MapaRisco() {
 
             {/* Painel lateral */}
             <div className="space-y-4">
-              {/* Info do município selecionado */}
-              {selectedMunicipio && (
+              {/* Painel de estatísticas do município */}
+              {municipioStats ? (
+                <PainelEstatisticas
+                  stats={municipioStats}
+                  onClose={() => setSelectedMunicipio(null)}
+                />
+              ) : selectedMunicipio ? (
                 <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-                  <h3 className="font-medium text-gray-800 mb-2">
-                    {selectedMunicipio.nome}
-                  </h3>
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-medium text-gray-800">
+                      {selectedMunicipio.nome}
+                    </h3>
+                    <button
+                      onClick={() => setSelectedMunicipio(null)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
                   <p className="text-sm text-gray-500">
                     Código IBGE: {selectedMunicipio.codigo}
                   </p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Os dados detalhados de risco e desmatamento evitado por classe
-                    serão exibidos aqui após a execução do pipeline ACEU.
+                  <p className="text-sm text-gray-400 mt-2 italic">
+                    Estatísticas disponíveis após execução do pipeline.
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-gray-50 rounded-lg border border-dashed border-gray-300 p-4 text-center">
+                  <BarChart3 className="w-6 h-6 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">
+                    Clique em um município no mapa para ver estatísticas detalhadas.
                   </p>
                 </div>
               )}
@@ -91,8 +276,7 @@ export default function MapaRisco() {
                 </h3>
                 <div className="space-y-2 text-sm text-gray-600">
                   <p>
-                    Probabilidade de desmatamento em 20 anos, calculada pela
-                    combinação dos fatores ACEU:
+                    Probabilidade de desmatamento em 20 anos (ACEU):
                   </p>
                   <ul className="list-none space-y-1 mt-2">
                     <li className="flex items-start gap-2">
@@ -124,7 +308,6 @@ export default function MapaRisco() {
                 <div className="space-y-2 text-sm text-gray-600">
                   <p>
                     Cruzamento do risco ACEU com o desmatamento observado (PRODES/MapBiomas).
-                    Mostra onde a floresta foi preservada apesar do alto risco.
                   </p>
                   <div className="mt-2 space-y-1">
                     <div className="flex items-center gap-2">

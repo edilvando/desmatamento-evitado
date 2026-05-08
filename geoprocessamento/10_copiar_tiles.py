@@ -150,6 +150,28 @@ def gerar_dados_resumo():
     return True
 
 
+def copiar_estatisticas_municipios():
+    """
+    Copia o JSON de estatísticas de desmatamento evitado por município
+    para o frontend (usado pelo painel interativo).
+    """
+    print("\n[4] Copiando estatísticas de desmatamento evitado...")
+
+    caminho_origem = os.path.join(BASE_DIR, "output", "estatisticas_municipios.json")
+    caminho_destino = os.path.join(FRONTEND_TILES, "estatisticas_municipios.json")
+
+    if not os.path.exists(caminho_origem):
+        print("  [AVISO] estatisticas_municipios.json não encontrado.")
+        print("  Execute 08_estatisticas.py ou gerar_dados_sinteticos.py primeiro.")
+        return False
+
+    shutil.copy2(caminho_origem, caminho_destino)
+    tamanho_kb = os.path.getsize(caminho_destino) / 1024
+    print(f"  Copiado: {caminho_destino} ({tamanho_kb:.1f} KB)")
+
+    return True
+
+
 def main():
     print("=" * 70)
     print("PIPELINE ACEU - ETAPA 10: COPIAR TILES PARA O FRONTEND")
@@ -158,6 +180,7 @@ def main():
     sucesso_tiles = copiar_tiles()
     sucesso_geo = copiar_municipios_geojson()
     sucesso_resumo = gerar_dados_resumo()
+    sucesso_stats = copiar_estatisticas_municipios()
 
     print("\n" + "=" * 70)
     if sucesso_tiles:
