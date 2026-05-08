@@ -1,0 +1,18 @@
+# Dados brutos (muito grandes para o Git)
+dados_brutos/
+
+# Rasters intermediários (gerados pelo pipeline)
+rasters/
+
+# Tiles (gerados pelo pipeline, copiar para client/public/ se necessário)
+# Descomentar a linha abaixo se quiser versionar os tiles
+# tiles/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/

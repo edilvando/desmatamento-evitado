@@ -10,6 +10,7 @@ import MatoGrosso from "./pages/MatoGrosso";
 import Metodologia from "./pages/Metodologia";
 import FontesDados from "./pages/FontesDados";
 import CodigoProtegido from "./pages/CodigoProtegido";
+import MapaRisco from "./pages/MapaRisco";
 
 function Router() {
   return (
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/estados" component={Estados} />
       <Route path="/mato-grosso" component={MatoGrosso} />
+      <Route path="/mapa-risco" component={MapaRisco} />
       <Route path="/metodologia" component={Metodologia} />
       <Route path="/fontes" component={FontesDados} />
       <Route path="/codigo" component={CodigoProtegido} />

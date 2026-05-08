@@ -14,6 +14,7 @@ const navItems = [
   { href: "/", label: "Panorama" },
   { href: "/estados", label: "Estados" },
   { href: "/mato-grosso", label: "Mato Grosso" },
+  { href: "/mapa-risco", label: "Mapa de Risco" },
   { href: "/metodologia", label: "Metodologia" },
   { href: "/fontes", label: "Fontes de Dados" },
   { href: "/codigo", label: "Código" },
