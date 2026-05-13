@@ -400,8 +400,7 @@ def criar_geojson_municipios():
             },
             {
                 "type": "Feature",
-                "properties": {"CD
-_MUN": "5100401", "NM_MUN": "Município Sul", "SIGLA_UF": "MT"},
+                "properties": {"CD_MUN": "5100401", "NM_MUN": "Município Sul", "SIGLA_UF": "MT"},
                 "geometry": {
                     "type": "Polygon",
                     "coordinates": [[[LON_MIN, LAT_MIN], [LON_MIN + 0.3, LAT_MIN],
