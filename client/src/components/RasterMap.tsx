@@ -1,21 +1,16 @@
 /**
  * RasterMap.tsx — Mapa interativo com tiles de risco ACEU e desmatamento evitado
  * Usa Leaflet + react-leaflet para exibir rasters sobre mapa base.
- * Suporta toggle entre camadas: risco de desmatamento e desmatamento evitado.
+ * Carrega metadata.json dinamicamente para centralizar no bounds correto.
  */
-import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, GeoJSON, useMap, LayersControl } from "react-leaflet";
+import { useEffect, useState, useMemo } from "react";
+import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import type { FeatureCollection } from "geojson";
 
-// Metadados dos tiles (gerados pelo pipeline Python)
-const TILES_METADATA = {
-  bounds: {
-    south: -18.05,
-    west: -61.63,
-    north: -7.35,
-    east: -50.22,
-  },
+// Fallback caso metadata.json não exista
+const DEFAULT_META = {
+  bounds: { south: -18.05, west: -61.63, north: -7.35, east: -50.22 },
   center: { lat: -12.7, lon: -55.9 },
   zoom_min: 5,
   zoom_max: 12,
@@ -42,6 +37,13 @@ const CLASSES_EVITADO = [
 
 type CamadaAtiva = "risco" | "evitado";
 
+interface TilesMetadata {
+  bounds: { south: number; west: number; north: number; east: number };
+  center: { lat: number; lon: number };
+  zoom_min: number;
+  zoom_max: number;
+}
+
 interface RasterMapProps {
   showLegend?: boolean;
   showMunicipios?: boolean;
@@ -50,15 +52,14 @@ interface RasterMapProps {
   camadaInicial?: CamadaAtiva;
 }
 
-function FitBounds() {
+function FitToBounds({ bounds }: { bounds: TilesMetadata["bounds"] }) {
   const map = useMap();
   useEffect(() => {
-    const { south, west, north, east } = TILES_METADATA.bounds;
     map.fitBounds([
-      [south, west],
-      [north, east],
+      [bounds.south, bounds.west],
+      [bounds.north, bounds.east],
     ]);
-  }, [map]);
+  }, [map, bounds]);
   return null;
 }
 
@@ -71,6 +72,29 @@ export default function RasterMap({
 }: RasterMapProps) {
   const [municipiosGeo, setMunicipiosGeo] = useState<FeatureCollection | null>(null);
   const [camadaAtiva, setCamadaAtiva] = useState<CamadaAtiva>(camadaInicial);
+  const [meta, setMeta] = useState<TilesMetadata>(DEFAULT_META);
+  const [metaLoaded, setMetaLoaded] = useState(false);
+
+  // Carregar metadata.json dos tiles para obter bounds corretos
+  useEffect(() => {
+    fetch("/tiles/metadata.json")
+      .then((r) => {
+        if (r.ok) return r.json();
+        return null;
+      })
+      .then((data) => {
+        if (data && data.bounds) {
+          setMeta({
+            bounds: data.bounds,
+            center: data.center || DEFAULT_META.center,
+            zoom_min: data.zoom_min || DEFAULT_META.zoom_min,
+            zoom_max: data.zoom_max || DEFAULT_META.zoom_max,
+          });
+        }
+        setMetaLoaded(true);
+      })
+      .catch(() => setMetaLoaded(true));
+  }, []);
 
   // Carregar GeoJSON dos municípios para overlay
   useEffect(() => {
@@ -95,6 +119,14 @@ export default function RasterMap({
   const legendaAtiva = camadaAtiva === "risco" ? CLASSES_RISCO : CLASSES_EVITADO;
   const tituloLegenda =
     camadaAtiva === "risco" ? "Risco de Desmatamento" : "Desmatamento Evitado";
+
+  if (!metaLoaded) {
+    return (
+      <div className={`flex items-center justify-center ${className}`} style={{ minHeight: "500px" }}>
+        <p className="text-gray-500">Carregando mapa...</p>
+      </div>
+    );
+  }
 
   return (
     <div className={`relative w-full ${className}`} style={{ minHeight: "500px" }}>
@@ -124,10 +156,10 @@ export default function RasterMap({
       </div>
 
       <MapContainer
-        center={[TILES_METADATA.center.lat, TILES_METADATA.center.lon]}
-        zoom={6}
-        minZoom={TILES_METADATA.zoom_min}
-        maxZoom={TILES_METADATA.zoom_max}
+        center={[meta.center.lat, meta.center.lon]}
+        zoom={10}
+        minZoom={meta.zoom_min}
+        maxZoom={meta.zoom_max}
         style={{ height: "100%", width: "100%", minHeight: "500px", borderRadius: "8px" }}
         scrollWheelZoom={true}
       >
@@ -144,8 +176,9 @@ export default function RasterMap({
           url={tilesUrl}
           opacity={0.75}
           tms={false}
-          maxZoom={TILES_METADATA.zoom_max}
-          minZoom={TILES_METADATA.zoom_min}
+          maxZoom={meta.zoom_max}
+          minZoom={meta.zoom_min}
+          errorTileUrl=""
         />
 
         {/* Limites municipais como overlay */}
@@ -169,7 +202,7 @@ export default function RasterMap({
           />
         )}
 
-        <FitBounds />
+        <FitToBounds bounds={meta.bounds} />
       </MapContainer>
 
       {/* Legenda dinâmica */}
