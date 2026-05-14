@@ -155,12 +155,17 @@ export default function MapaRisco() {
   const [allStats, setAllStats] = useState<MunicipioStats[]>([]);
   const [municipioStats, setMunicipioStats] = useState<MunicipioStats | null>(null);
 
-  // URL base absoluta para garantir que funciona com qualquer base path
+  // URL base absoluta - detecta base path da URL do navegador
   const tilesBase = useMemo(() => {
+    if (typeof window === "undefined") return "/";
+    const pathname = window.location.pathname;
+    const idx = pathname.indexOf("/desmatamento-evitado/");
+    if (idx >= 0) {
+      return `${window.location.origin}/desmatamento-evitado/`;
+    }
     const base = import.meta.env.BASE_URL || "/";
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
     const normalized = base.endsWith("/") ? base : base + "/";
-    return `${origin}${normalized}`;
+    return `${window.location.origin}${normalized}`;
   }, []);
 
   // Carregar estatísticas do JSON gerado pelo pipeline

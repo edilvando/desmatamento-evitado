@@ -62,11 +62,20 @@ interface RasterMapProps {
  * independente do base path configurado no Vite.
  */
 function getTilesBaseUrl(): string {
+  if (typeof window === "undefined") return "/";
+  // Detectar o base path a partir da URL atual do navegador
+  // Se a URL é http://localhost:3000/desmatamento-evitado/mapa-risco
+  // o base path é /desmatamento-evitado/
+  const pathname = window.location.pathname;
+  // Procurar o segmento "desmatamento-evitado" na URL
+  const idx = pathname.indexOf("/desmatamento-evitado/");
+  if (idx >= 0) {
+    return `${window.location.origin}/desmatamento-evitado/`;
+  }
+  // Fallback: usar BASE_URL do Vite
   const base = import.meta.env.BASE_URL || "/";
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
-  // Garantir que termina com /
   const normalized = base.endsWith("/") ? base : base + "/";
-  return `${origin}${normalized}`;
+  return `${window.location.origin}${normalized}`;
 }
 
 function FitToBounds({ bounds }: { bounds: TilesMetadata["bounds"] }) {
