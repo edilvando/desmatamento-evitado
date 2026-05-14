@@ -76,10 +76,13 @@ def carregar_camada_por_caminho(caminho, nome_camada):
         return None
 
     # Corrigir geometrias inválidas (TopologyException)
+    from shapely.validation import make_valid
     n_invalidas = (~gdf.geometry.is_valid).sum()
     if n_invalidas > 0:
-        print(f"    Corrigindo {n_invalidas} geometrias inválidas com buffer(0)...")
-        gdf["geometry"] = gdf.geometry.buffer(0)
+        print(f"    Corrigindo {n_invalidas} geometrias inválidas com make_valid...")
+        gdf["geometry"] = gdf.geometry.apply(
+            lambda g: make_valid(g) if g is not None and not g.is_valid else g
+        )
 
     print(f"    {len(gdf)} feições carregadas")
     return gdf
@@ -211,10 +214,13 @@ def main():
         if gdf is not None and len(gdf) > 0:
             gdf = gdf.to_crs(CRS_PROJETO)
             # Corrigir geometrias inválidas após reprojeção
+            from shapely.validation import make_valid as _make_valid
             n_inv = (~gdf.geometry.is_valid).sum()
             if n_inv > 0:
                 print(f"  {nome}: corrigindo {n_inv} geometrias inválidas...")
-                gdf["geometry"] = gdf.geometry.buffer(0)
+                gdf["geometry"] = gdf.geometry.apply(
+                    lambda g: _make_valid(g) if g is not None and not g.is_valid else g
+                )
             camadas.append(gdf)
             print(f"  {nome}: {len(gdf)} feições reprojetadas")
         else:

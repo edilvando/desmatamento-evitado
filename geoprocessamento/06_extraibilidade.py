@@ -117,21 +117,43 @@ def calcular_pressao_mineral(meta, transform, shape, mascara):
     if gdf is None:
         print("  [ERRO] Não foi possível ler shapefile de mineração")
         return np.where(mascara == 1, 1, 0).astype(np.uint8)
-    # Corrigir geometrias inválidas
+    # Corrigir geometrias inválidas com make_valid (mais robusto que buffer(0))
+    from shapely.validation import make_valid
     n_inv = (~gdf.geometry.is_valid).sum()
     if n_inv > 0:
-        print(f"  Corrigindo {n_inv} geometrias inválidas...")
-        gdf["geometry"] = gdf.geometry.buffer(0)
+        print(f"  Corrigindo {n_inv} geometrias inválidas com make_valid...")
+        gdf["geometry"] = gdf.geometry.apply(
+            lambda g: make_valid(g) if g is not None and not g.is_valid else g
+        )
+        # Segundo passo: remover geometrias que ainda são inválidas
+        still_invalid = ~gdf.geometry.is_valid
+        if still_invalid.any():
+            print(f"  Removendo {still_invalid.sum()} geometrias irrecuperáveis...")
+            gdf = gdf[~still_invalid].copy()
     gdf = gdf.to_crs(CRS_PROJETO)
 
-    # Recortar para MT
+    # Corrigir novamente após reprojeção
+    n_inv2 = (~gdf.geometry.is_valid).sum()
+    if n_inv2 > 0:
+        gdf["geometry"] = gdf.geometry.apply(
+            lambda g: make_valid(g) if g is not None and not g.is_valid else g
+        )
+
+    # Recortar para MT (com tratamento de TopologyException)
     from shapely.geometry import box
     minx = transform.c
     maxy = transform.f
     maxx = minx + shape[1] * 30
     miny = maxy - shape[0] * 30
     bbox = box(minx, miny, maxx, maxy)
-    gdf = gdf.clip(bbox)
+    try:
+        gdf = gdf.clip(bbox)
+    except Exception as e:
+        print(f"  [AVISO] Clip falhou ({e}). Usando intersects como alternativa...")
+        # Fallback: filtrar por bbox sem clip exato
+        from shapely.geometry import box as shapely_box
+        mask = gdf.geometry.intersects(bbox)
+        gdf = gdf[mask].copy()
 
     if len(gdf) == 0:
         print("  Nenhum processo minerário dentro do MT.")
