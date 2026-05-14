@@ -3,19 +3,11 @@ Etapa 06 - Componente E: Extraibilidade (recursos florestais e minerais)
 
 Processo:
 1. Camada de cobertura florestal (MapBiomas): onde há floresta densa,
-   existe recurso florestal disponível para extração (madeira, PFNM)
+   existe recurso florestal disponível para extração
 2. Camada de mineração (SIGMINE/ANM): processos minerários ativos
-   indicam atratividade mineral que pode impulsionar desmatamento
 3. Combinação: máximo entre as duas camadas (abordagem conservadora)
 
-Lógica: a extraibilidade representa a atratividade econômica de recursos
-naturais que pode motivar o desmatamento. Floresta densa = madeira
-disponível. Processos minerários = pressão de conversão para mineração.
-
 Saída: rasters/componente_e.tif (uint8, valores 1 a 5)
-
-Referência:
-ECOMETRICA. The Hectares Indicator Methods and Guidance. Version 2.0. Edinburgh, 2019.
 """
 import os
 import numpy as np
@@ -24,28 +16,13 @@ import rasterio
 from rasterio.features import rasterize
 from rasterio.warp import reproject, Resampling
 from config import (
-    DADOS_BRUTOS_DIR, RASTERS_DIR, CRS_PROJETO
+    DADOS_BRUTOS_DIR, RASTERS_DIR, CRS_PROJETO,
+    obter_mapbiomas, obter_mineracao, ANO_T0
 )
 
 
 # Classes MapBiomas de vegetação nativa (recurso florestal)
-CLASSES_FLORESTA_MAPBIOMAS = {
-    3,    # Formação Florestal
-    4,    # Formação Savânica
-    5,    # Mangue
-    6,    # Floresta Alagável
-    49,   # Restinga Arborizada
-}
-
-CLASSES_VEGETACAO_NATIVA_MAPBIOMAS = {
-    3, 4, 5, 6, 49,  # Florestais
-    11,   # Campo Alagado e Área Pantanosa
-    12,   # Formação Campestre
-    32,   # Apicum
-    29,   # Afloramento Rochoso
-    50,   # Restinga Herbácea
-    13,   # Outras Formações não Florestais
-}
+CLASSES_FLORESTA_MAPBIOMAS = {3, 4, 5, 6, 49}
 
 
 def carregar_grade_referencia():
@@ -65,28 +42,21 @@ def carregar_grade_referencia():
 
 
 def calcular_recurso_florestal(meta, transform, shape, mascara):
-    """
-    Calcula o subcomponente de recurso florestal.
-    Usa o MapBiomas para identificar áreas com cobertura florestal.
-    
-    Reclassificação:
-    - Formação Florestal densa (classe 3): valor 5 (máximo recurso)
-    - Formação Savânica (classe 4): valor 3 (recurso médio)
-    - Outras formações nativas: valor 2 (recurso baixo)
-    - Sem vegetação nativa: valor 1 (sem recurso florestal)
-    """
-    # Tentar carregar MapBiomas
-    caminho_mapbiomas = None
-    for f in os.listdir(DADOS_BRUTOS_DIR):
-        if "mapbiomas" in f.lower() and (f.endswith(".tif") or f.endswith(".tiff")):
-            caminho_mapbiomas = os.path.join(DADOS_BRUTOS_DIR, f)
-            break
+    """Calcula o subcomponente de recurso florestal via MapBiomas."""
+    caminho_mapbiomas = obter_mapbiomas(ANO_T0)
 
     if caminho_mapbiomas is None:
-        print("  [AVISO] MapBiomas não encontrado. Usando estimativa baseada na máscara.")
-        # Fallback: assumir que toda a área dentro do MT com máscara tem recurso médio
-        recurso = np.where(mascara == 1, 3, 0).astype(np.uint8)
-        return recurso
+        # Fallback: procurar qualquer tif na pasta mapbiomas
+        mapbiomas_dir = os.path.join(DADOS_BRUTOS_DIR, "mapbiomas")
+        if os.path.exists(mapbiomas_dir):
+            for f in sorted(os.listdir(mapbiomas_dir)):
+                if f.endswith(".tif") or f.endswith(".tiff"):
+                    caminho_mapbiomas = os.path.join(mapbiomas_dir, f)
+                    break
+
+    if caminho_mapbiomas is None:
+        print("  [AVISO] MapBiomas não encontrado. Usando valor médio uniforme.")
+        return np.where(mascara == 1, 3, 0).astype(np.uint8)
 
     print(f"  Carregando MapBiomas: {os.path.basename(caminho_mapbiomas)}")
     with rasterio.open(caminho_mapbiomas) as src:
@@ -102,21 +72,16 @@ def calcular_recurso_florestal(meta, transform, shape, mascara):
         )
 
     # Reclassificar por tipo de vegetação
-    recurso = np.ones(shape, dtype=np.uint8)  # base = 1 (sem recurso)
+    recurso = np.ones(shape, dtype=np.uint8)  # base = 1
 
     # Formação florestal densa = máximo recurso
     recurso[np.isin(uso_solo, [3, 6])] = 5
-
     # Formação savânica = recurso alto
     recurso[uso_solo == 4] = 4
-
     # Outras formações nativas = recurso médio
-    outras_nativas = [11, 12, 13, 32, 49, 50]
-    recurso[np.isin(uso_solo, outras_nativas)] = 3
-
-    # Silvicultura = recurso médio-baixo (já explorado)
+    recurso[np.isin(uso_solo, [11, 12, 13, 32, 49, 50])] = 3
+    # Silvicultura = recurso médio-baixo
     recurso[uso_solo == 9] = 2
-
     # Aplicar máscara
     recurso[mascara == 0] = 0
 
@@ -130,32 +95,18 @@ def calcular_recurso_florestal(meta, transform, shape, mascara):
 
 
 def calcular_pressao_mineral(meta, transform, shape, mascara):
-    """
-    Calcula o subcomponente de pressão mineral.
-    Rasteriza polígonos de processos minerários (SIGMINE/ANM).
-    
-    Dentro de processo minerário: valor 4 (pressão alta)
-    Fora: valor 1 (sem pressão mineral)
-    """
-    pasta_mineracao = os.path.join(DADOS_BRUTOS_DIR, "mineracao")
+    """Calcula o subcomponente de pressão mineral via SIGMINE/ANM."""
+    caminho = obter_mineracao()
 
-    if not os.path.exists(pasta_mineracao):
+    if caminho is None:
         print("  [AVISO] Dados de mineração não encontrados.")
-        print("  Componente E será baseado apenas no recurso florestal.")
         return np.where(mascara == 1, 1, 0).astype(np.uint8)
 
-    # Procurar shapefile
-    shps = [f for f in os.listdir(pasta_mineracao) if f.endswith(".shp")]
-    if not shps:
-        print("  [AVISO] Nenhum shapefile de mineração encontrado.")
-        return np.where(mascara == 1, 1, 0).astype(np.uint8)
-
-    caminho = os.path.join(pasta_mineracao, shps[0])
-    print(f"  Carregando mineração: {shps[0]}")
+    print(f"  Carregando mineração: {os.path.basename(caminho)}")
     gdf = gpd.read_file(caminho)
     gdf = gdf.to_crs(CRS_PROJETO)
 
-    # Recortar para MT (usando bounds da grade)
+    # Recortar para MT
     from shapely.geometry import box
     minx = transform.c
     maxy = transform.f
@@ -170,7 +121,6 @@ def calcular_pressao_mineral(meta, transform, shape, mascara):
 
     print(f"  Processos minerários no MT: {len(gdf)}")
 
-    # Rasterizar: dentro de processo = 4, fora = 1
     geometrias = [(geom, 4) for geom in gdf.geometry if geom is not None]
     mineral = rasterize(
         geometrias,
@@ -189,10 +139,7 @@ def calcular_pressao_mineral(meta, transform, shape, mascara):
 
 
 def combinar_extraibilidade(recurso_florestal, pressao_mineral, mascara):
-    """
-    Combina os dois subcomponentes usando o máximo (abordagem conservadora).
-    O valor final de E é o maior entre recurso florestal e pressão mineral.
-    """
+    """Combina os dois subcomponentes usando o máximo."""
     componente_e = np.maximum(recurso_florestal, pressao_mineral)
     componente_e[mascara == 0] = 0
 

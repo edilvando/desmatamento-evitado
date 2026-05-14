@@ -2,7 +2,7 @@
 Etapa 03 - Componente A: Acessibilidade (distância às rodovias)
 
 Processo:
-1. Carrega shapefile de rodovias (SNV/DNIT ou OpenStreetMap)
+1. Carrega shapefile de rodovias (SNV/DNIT)
 2. Recorta para o Mato Grosso
 3. Reprojeta para EPSG:31981
 4. Rasteriza rodovias na grade de referência
@@ -22,7 +22,8 @@ from rasterio.features import rasterize
 from scipy.ndimage import distance_transform_edt
 from config import (
     DADOS_BRUTOS_DIR, RASTERS_DIR,
-    CRS_PROJETO, RESOLUCAO, LIMIARES_A
+    CRS_PROJETO, RESOLUCAO, LIMIARES_A,
+    obter_rodovias
 )
 
 
@@ -47,55 +48,49 @@ def carregar_grade_referencia():
 
 def carregar_rodovias():
     """
-    Carrega shapefile de rodovias. Tenta múltiplas fontes:
-    1. SNV/DNIT (dados_brutos/rodovias/)
-    2. OpenStreetMap/Geofabrik (dados_brutos/rodovias_osm/)
-    3. Qualquer .shp na pasta dados_brutos/ com 'rodovia' no nome
+    Carrega shapefile de rodovias usando a busca inteligente do config.
+    Se o arquivo for um ZIP dentro de subpasta, descompacta primeiro.
     """
-    # Tentar SNV/DNIT
-    pasta_dnit = os.path.join(DADOS_BRUTOS_DIR, "rodovias")
-    if os.path.exists(pasta_dnit):
-        shps = [f for f in os.listdir(pasta_dnit) if f.endswith(".shp")]
-        if shps:
-            caminho = os.path.join(pasta_dnit, shps[0])
-            print(f"  Fonte: SNV/DNIT ({shps[0]})")
-            return gpd.read_file(caminho)
+    caminho = obter_rodovias()
+    if caminho is not None:
+        print(f"  Fonte: {os.path.basename(caminho)}")
+        print(f"  Caminho: {caminho}")
+        return gpd.read_file(caminho)
 
-    # Tentar OSM/Geofabrik
-    pasta_osm = os.path.join(DADOS_BRUTOS_DIR, "rodovias_osm")
-    if os.path.exists(pasta_osm):
-        shps = [f for f in os.listdir(pasta_osm) if f.endswith(".shp")]
-        # Procurar o arquivo de roads
-        roads = [f for f in shps if "road" in f.lower() or "rodovia" in f.lower()]
-        if roads:
-            caminho = os.path.join(pasta_osm, roads[0])
-            print(f"  Fonte: OpenStreetMap/Geofabrik ({roads[0]})")
-            return gpd.read_file(caminho)
-        elif shps:
-            caminho = os.path.join(pasta_osm, shps[0])
-            print(f"  Fonte: OpenStreetMap/Geofabrik ({shps[0]})")
-            return gpd.read_file(caminho)
+    # Se não encontrou .shp, tentar descompactar o ZIP mais recente
+    import zipfile
+    rodovias_dir = os.path.join(DADOS_BRUTOS_DIR, "rodovias_mt")
+    if not os.path.exists(rodovias_dir):
+        rodovias_dir = os.path.join(DADOS_BRUTOS_DIR, "rodovias")
 
-    # Busca genérica
-    for f in os.listdir(DADOS_BRUTOS_DIR):
-        if f.endswith(".shp") and "rodovia" in f.lower():
-            caminho = os.path.join(DADOS_BRUTOS_DIR, f)
-            print(f"  Fonte: {f}")
-            return gpd.read_file(caminho)
+    # Buscar ZIPs recursivamente
+    for root, dirs, files in os.walk(rodovias_dir):
+        zips = sorted([f for f in files if f.endswith(".zip")], reverse=True)
+        if zips:
+            # Pegar o mais recente (último na ordem alfabética = mais recente)
+            zip_path = os.path.join(root, zips[0])
+            extract_dir = os.path.join(root, zips[0].replace(".zip", ""))
+            os.makedirs(extract_dir, exist_ok=True)
+            print(f"  Descompactando: {zips[0]}")
+            with zipfile.ZipFile(zip_path, "r") as z:
+                z.extractall(extract_dir)
+            # Buscar o .shp extraído
+            for f in os.listdir(extract_dir):
+                if f.endswith(".shp"):
+                    caminho = os.path.join(extract_dir, f)
+                    print(f"  Fonte: {f}")
+                    return gpd.read_file(caminho)
 
     raise FileNotFoundError(
         "Shapefile de rodovias não encontrado.\n"
-        "Coloque o shapefile em dados_brutos/rodovias/ ou dados_brutos/rodovias_osm/\n"
-        "Fontes:\n"
-        "  - DNIT: https://www.gov.br/dnit/pt-br/assuntos/atlas-e-mapas/shapefiles\n"
-        "  - Geofabrik (OSM): https://download.geofabrik.de/south-america/brazil/centro-oeste-latest-free.shp.zip"
+        "Descompacte um dos ZIPs em dados_brutos/rodovias_mt/Repositório/SNV Rotas (2015-Atual) (SHP)/\n"
+        "Exemplo: descompacte rota_202210C.zip"
     )
 
 
 def recortar_para_mt(gdf_rodovias, mascara_bounds):
     """Recorta rodovias para a extensão do MT (bounding box)."""
     gdf_rodovias = gdf_rodovias.to_crs(CRS_PROJETO)
-    # Clip pelo bounding box para performance
     from shapely.geometry import box
     bbox = box(*mascara_bounds)
     gdf_clip = gdf_rodovias.clip(bbox)
@@ -104,9 +99,7 @@ def recortar_para_mt(gdf_rodovias, mascara_bounds):
 
 
 def rasterizar_rodovias(gdf_rodovias, shape, transform):
-    """
-    Rasteriza as linhas de rodovias: pixels com rodovia = 1, resto = 0.
-    """
+    """Rasteriza as linhas de rodovias: pixels com rodovia = 1, resto = 0."""
     geometrias = [(geom, 1) for geom in gdf_rodovias.geometry if geom is not None]
     raster_rodovias = rasterize(
         geometrias,
@@ -123,17 +116,9 @@ def rasterizar_rodovias(gdf_rodovias, shape, transform):
 def calcular_distancia(raster_rodovias, resolucao):
     """
     Calcula distância euclidiana de cada pixel à rodovia mais próxima.
-    Usa scipy.ndimage.distance_transform_edt que é otimizado e rápido.
     O resultado é em metros (multiplicado pela resolução).
     """
-    # distance_transform_edt calcula distância dos pixels 0 ao pixel 1 mais próximo
-    # Precisamos inverter: queremos distância dos pixels SEM rodovia à rodovia mais próxima
-    # Pixels com rodovia = 1, sem rodovia = 0
-    # EDT calcula distância de cada pixel 0 ao 1 mais próximo... na verdade é o contrário:
-    # EDT calcula distância de cada pixel != 0 ao pixel 0 mais próximo
-    # Então: invertemos para que rodovia = 0 e o resto = 1
-    binario = (raster_rodovias == 0).astype(np.uint8)  # 1 onde NÃO tem rodovia
-
+    binario = (raster_rodovias == 0).astype(np.uint8)
     print("  Calculando distância euclidiana (pode levar 30-60s)...")
     distancia = distance_transform_edt(binario, sampling=[resolucao, resolucao])
 
@@ -160,7 +145,6 @@ def reclassificar_acessibilidade(distancia, mascara):
             condicao = (distancia >= dist_min) & (distancia < dist_max) & (mascara == 1)
         componente_a[condicao] = classe
 
-    # Estatísticas por classe
     print("  Distribuição de classes (dentro do MT):")
     for classe in range(1, 6):
         n = np.sum(componente_a == classe)
@@ -194,7 +178,6 @@ def main():
     meta, transform, shape, mascara = carregar_grade_referencia()
     print(f"  Grade: {shape[1]} x {shape[0]} pixels")
 
-    # Calcular bounds para recorte
     minx = transform.c
     maxy = transform.f
     maxx = minx + shape[1] * RESOLUCAO
@@ -213,8 +196,6 @@ def main():
 
     print("\n[5] Calculando distância euclidiana...")
     distancia = calcular_distancia(raster_rodovias, RESOLUCAO)
-
-    # Salvar raster de distância (útil para inspeção)
     salvar_raster(distancia, meta, "distancia_rodovias_mt.tif")
 
     print("\n[6] Reclassificando em classes de acessibilidade...")

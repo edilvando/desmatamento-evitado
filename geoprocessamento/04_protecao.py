@@ -16,10 +16,6 @@ Na fórmula ACEU, U entra com sinal negativo (reduz o risco):
 R_bruto(x) = A(x) + C(x) + E(x) - U(x)
 
 Saída: rasters/componente_u.tif (uint8, valores 0 ou 1)
-
-Referências:
-VENDRUSCULO et al. Aplicação da metodologia do Hectare Indicator para estimativa
-de desmatamento evitado no bioma Amazônia. Embrapa, 2019.
 """
 import os
 import numpy as np
@@ -28,7 +24,8 @@ import rasterio
 from rasterio.features import rasterize
 from shapely.ops import unary_union
 from config import (
-    DADOS_BRUTOS_DIR, RASTERS_DIR, CRS_PROJETO
+    DADOS_BRUTOS_DIR, RASTERS_DIR, CRS_PROJETO,
+    obter_terras_indigenas, obter_ucs
 )
 
 
@@ -48,28 +45,37 @@ def carregar_grade_referencia():
     return meta, transform, shape, mascara
 
 
-def carregar_camada(pasta, nome_camada):
-    """
-    Carrega um shapefile de uma pasta, tentando múltiplos formatos.
-    Retorna GeoDataFrame ou None se não encontrar.
-    """
+def carregar_camada_por_caminho(caminho, nome_camada):
+    """Carrega um shapefile dado o caminho completo."""
+    if caminho is None:
+        print(f"  [AVISO] {nome_camada}: arquivo não encontrado")
+        return None
+    if not os.path.exists(caminho):
+        print(f"  [AVISO] {nome_camada}: arquivo não existe: {caminho}")
+        return None
+
+    print(f"  Carregando {nome_camada}: {os.path.basename(caminho)}")
+    print(f"    Caminho: {caminho}")
+    gdf = gpd.read_file(caminho)
+    print(f"    {len(gdf)} feições carregadas")
+    return gdf
+
+
+def carregar_camada_pasta(pasta, nome_camada):
+    """Carrega um shapefile de uma pasta (busca automática)."""
     if not os.path.exists(pasta):
         print(f"  [AVISO] Pasta não encontrada: {pasta}")
         return None
 
-    # Procurar shapefiles
     arquivos = os.listdir(pasta)
     shps = [f for f in arquivos if f.endswith(".shp")]
     geojsons = [f for f in arquivos if f.endswith(".geojson") or f.endswith(".json")]
-    gpkgs = [f for f in arquivos if f.endswith(".gpkg")]
 
     caminho = None
     if shps:
         caminho = os.path.join(pasta, shps[0])
     elif geojsons:
         caminho = os.path.join(pasta, geojsons[0])
-    elif gpkgs:
-        caminho = os.path.join(pasta, gpkgs[0])
 
     if caminho is None:
         print(f"  [AVISO] Nenhum arquivo vetorial encontrado em: {pasta}")
@@ -85,19 +91,14 @@ def recortar_para_mt(gdf, limite_mt):
     """Recorta um GeoDataFrame para o limite do MT."""
     if gdf is None:
         return None
-    # Garantir mesmo CRS
     gdf = gdf.to_crs(limite_mt.crs)
-    # Clip
     gdf_clip = gpd.clip(gdf, limite_mt)
     print(f"    Após recorte para MT: {len(gdf_clip)} feições")
     return gdf_clip
 
 
 def unir_areas_protegidas(lista_gdfs):
-    """
-    Faz union de todas as geometrias de áreas protegidas.
-    Retorna um GeoDataFrame com uma única geometria (multipolygon).
-    """
+    """Faz union de todas as geometrias de áreas protegidas."""
     todas_geometrias = []
     for gdf in lista_gdfs:
         if gdf is not None and len(gdf) > 0:
@@ -117,10 +118,7 @@ def unir_areas_protegidas(lista_gdfs):
 
 
 def rasterizar_protecao(gdf_protecao, shape, transform, mascara):
-    """
-    Rasteriza áreas protegidas: 1 = protegido, 0 = não protegido.
-    Aplica máscara do estado (fora do MT = 0).
-    """
+    """Rasteriza áreas protegidas: 1 = protegido, 0 = não protegido."""
     if gdf_protecao is None or len(gdf_protecao) == 0:
         print("  [AVISO] Sem dados de áreas protegidas. Gerando raster zerado.")
         return np.zeros(shape, dtype=np.uint8)
@@ -135,7 +133,6 @@ def rasterizar_protecao(gdf_protecao, shape, transform, mascara):
         dtype=np.uint8,
     )
 
-    # Aplicar máscara (fora do MT = 0)
     componente_u = componente_u * mascara
 
     pixels_protegidos = np.sum(componente_u == 1)
@@ -163,25 +160,21 @@ def main():
 
     print("\n[3] Carregando camadas de áreas protegidas...")
 
-    # Terras Indígenas
+    # Terras Indígenas - usando busca inteligente do config
     print("\n  --- Terras Indígenas (FUNAI) ---")
-    gdf_ti = carregar_camada(
-        os.path.join(DADOS_BRUTOS_DIR, "terras_indigenas"),
-        "Terras Indígenas"
-    )
+    caminho_ti = obter_terras_indigenas()
+    gdf_ti = carregar_camada_por_caminho(caminho_ti, "Terras Indígenas")
     gdf_ti = recortar_para_mt(gdf_ti, limite_mt) if gdf_ti is not None else None
 
-    # Unidades de Conservação
+    # Unidades de Conservação - usando busca inteligente do config
     print("\n  --- Unidades de Conservação (MMA/CNUC) ---")
-    gdf_uc = carregar_camada(
-        os.path.join(DADOS_BRUTOS_DIR, "ucs"),
-        "Unidades de Conservação"
-    )
+    caminho_uc = obter_ucs()
+    gdf_uc = carregar_camada_por_caminho(caminho_uc, "Unidades de Conservação")
     gdf_uc = recortar_para_mt(gdf_uc, limite_mt) if gdf_uc is not None else None
 
-    # Quilombos
+    # Quilombos (opcional)
     print("\n  --- Territórios Quilombolas (INCRA) ---")
-    gdf_quilombo = carregar_camada(
+    gdf_quilombo = carregar_camada_pasta(
         os.path.join(DADOS_BRUTOS_DIR, "quilombos"),
         "Quilombos"
     )
