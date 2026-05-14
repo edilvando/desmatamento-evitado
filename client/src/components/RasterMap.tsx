@@ -2,6 +2,10 @@
  * RasterMap.tsx — Mapa interativo com tiles de risco ACEU e desmatamento evitado
  * Usa Leaflet + react-leaflet para exibir rasters sobre mapa base.
  * Carrega metadata.json dinamicamente para centralizar no bounds correto.
+ *
+ * Os tiles ficam em client/public/tiles/ e são servidos pelo Vite.
+ * Para funcionar tanto local (base="/desmatamento-evitado/") quanto
+ * em deploy, usamos window.location.origin + import.meta.env.BASE_URL.
  */
 import { useEffect, useState, useMemo } from "react";
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
@@ -52,6 +56,19 @@ interface RasterMapProps {
   camadaInicial?: CamadaAtiva;
 }
 
+/**
+ * Calcula a URL base absoluta para os tiles.
+ * Usa window.location.origin + BASE_URL para garantir que funciona
+ * independente do base path configurado no Vite.
+ */
+function getTilesBaseUrl(): string {
+  const base = import.meta.env.BASE_URL || "/";
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  // Garantir que termina com /
+  const normalized = base.endsWith("/") ? base : base + "/";
+  return `${origin}${normalized}`;
+}
+
 function FitToBounds({ bounds }: { bounds: TilesMetadata["bounds"] }) {
   const map = useMap();
   useEffect(() => {
@@ -75,11 +92,12 @@ export default function RasterMap({
   const [meta, setMeta] = useState<TilesMetadata>(DEFAULT_META);
   const [metaLoaded, setMetaLoaded] = useState(false);
 
-  const basePath = import.meta.env.BASE_URL || "/";
+  // URL base absoluta: http://localhost:3000/desmatamento-evitado/
+  const tilesBase = useMemo(() => getTilesBaseUrl(), []);
 
   // Carregar metadata.json dos tiles para obter bounds corretos
   useEffect(() => {
-    fetch(`${basePath}tiles/metadata.json`)
+    fetch(`${tilesBase}tiles/metadata.json`)
       .then((r) => {
         if (r.ok) return r.json();
         return null;
@@ -96,12 +114,12 @@ export default function RasterMap({
         setMetaLoaded(true);
       })
       .catch(() => setMetaLoaded(true));
-  }, []);
+  }, [tilesBase]);
 
   // Carregar GeoJSON dos municípios para overlay
   useEffect(() => {
     if (showMunicipios) {
-      fetch(`${basePath}tiles/municipios_mt.geojson`)
+      fetch(`${tilesBase}tiles/municipios_mt.geojson`)
         .then((r) => {
           if (r.ok) return r.json();
           return null;
@@ -111,12 +129,14 @@ export default function RasterMap({
         })
         .catch(() => {});
     }
-  }, [showMunicipios]);
+  }, [showMunicipios, tilesBase]);
 
+  // URL absoluta para o Leaflet TileLayer
+  // Ex: http://localhost:3000/desmatamento-evitado/tiles/risco/{z}/{x}/{y}.png
   const tilesUrl =
     camadaAtiva === "risco"
-      ? `${basePath}tiles/risco/{z}/{x}/{y}.png`
-      : `${basePath}tiles/evitado/{z}/{x}/{y}.png`;
+      ? `${tilesBase}tiles/risco/{z}/{x}/{y}.png`
+      : `${tilesBase}tiles/evitado/{z}/{x}/{y}.png`;
 
   const legendaAtiva = camadaAtiva === "risco" ? CLASSES_RISCO : CLASSES_EVITADO;
   const tituloLegenda =
@@ -159,7 +179,7 @@ export default function RasterMap({
 
       <MapContainer
         center={[meta.center.lat, meta.center.lon]}
-        zoom={10}
+        zoom={6}
         minZoom={meta.zoom_min}
         maxZoom={meta.zoom_max}
         style={{ height: "100%", width: "100%", minHeight: "500px", borderRadius: "8px" }}

@@ -155,11 +155,17 @@ export default function MapaRisco() {
   const [allStats, setAllStats] = useState<MunicipioStats[]>([]);
   const [municipioStats, setMunicipioStats] = useState<MunicipioStats | null>(null);
 
-  const basePath = import.meta.env.BASE_URL || "/";
+  // URL base absoluta para garantir que funciona com qualquer base path
+  const tilesBase = useMemo(() => {
+    const base = import.meta.env.BASE_URL || "/";
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const normalized = base.endsWith("/") ? base : base + "/";
+    return `${origin}${normalized}`;
+  }, []);
 
   // Carregar estatísticas do JSON gerado pelo pipeline
   useEffect(() => {
-    fetch(`${basePath}tiles/estatisticas_municipios.json`)
+    fetch(`${tilesBase}tiles/estatisticas_municipios.json`)
       .then((r) => {
         if (r.ok) return r.json();
         return null;
