@@ -133,7 +133,10 @@ export default function MatoGrosso() {
   const avgFlorestal = munisFiltradosBioma.length > 0
     ? (munisFiltradosBioma.reduce((s, m) => s + m.cobertura_florestal_pct, 0) / munisFiltradosBioma.length).toFixed(1)
     : "0";
-  const totalProtegida = 0; // Dados de áreas protegidas não disponíveis nesta versão
+  const totalEvitadoMT = munisFiltradosBioma.reduce((s, m) => {
+    const evData = m.desmatamento_evitado || {};
+    return s + Object.values(evData).reduce((sum: number, v: any) => sum + (v.evitado > 0 ? v.evitado : 0), 0);
+  }, 0);
 
   const biomaLabel = selectedBioma === "Todos" ? "Todos os biomas" : selectedBioma;
 
@@ -217,8 +220,8 @@ export default function MatoGrosso() {
                 <Shield size={20} style={{ color: "#2E7D32" }} />
               </div>
               <div>
-                <p className="text-2xl font-bold" style={{ color: "#2E7D32" }}>{totalProtegida.toLocaleString("pt-BR")} km²</p>
-                <p className="text-xs" style={{ color: "#7a7568" }}>Áreas protegidas</p>
+                <p className="text-2xl font-bold" style={{ color: "#2E7D32" }}>{Math.round(totalEvitadoMT).toLocaleString("pt-BR")} km²</p>
+                <p className="text-xs" style={{ color: "#7a7568" }}>Desmatamento evitado (acumulado)</p>
               </div>
             </div>
           </div>

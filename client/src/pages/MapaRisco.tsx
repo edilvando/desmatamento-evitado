@@ -155,9 +155,11 @@ export default function MapaRisco() {
   const [allStats, setAllStats] = useState<MunicipioStats[]>([]);
   const [municipioStats, setMunicipioStats] = useState<MunicipioStats | null>(null);
 
+  const basePath = import.meta.env.BASE_URL || "/";
+
   // Carregar estatísticas do JSON gerado pelo pipeline
   useEffect(() => {
-    fetch("/tiles/estatisticas_municipios.json")
+    fetch(`${basePath}tiles/estatisticas_municipios.json`)
       .then((r) => {
         if (r.ok) return r.json();
         return null;

@@ -75,9 +75,11 @@ export default function RasterMap({
   const [meta, setMeta] = useState<TilesMetadata>(DEFAULT_META);
   const [metaLoaded, setMetaLoaded] = useState(false);
 
+  const basePath = import.meta.env.BASE_URL || "/";
+
   // Carregar metadata.json dos tiles para obter bounds corretos
   useEffect(() => {
-    fetch("/tiles/metadata.json")
+    fetch(`${basePath}tiles/metadata.json`)
       .then((r) => {
         if (r.ok) return r.json();
         return null;
@@ -99,7 +101,7 @@ export default function RasterMap({
   // Carregar GeoJSON dos municípios para overlay
   useEffect(() => {
     if (showMunicipios) {
-      fetch("/tiles/municipios_mt.geojson")
+      fetch(`${basePath}tiles/municipios_mt.geojson`)
         .then((r) => {
           if (r.ok) return r.json();
           return null;
@@ -113,8 +115,8 @@ export default function RasterMap({
 
   const tilesUrl =
     camadaAtiva === "risco"
-      ? "/tiles/risco/{z}/{x}/{y}.png"
-      : "/tiles/evitado/{z}/{x}/{y}.png";
+      ? `${basePath}tiles/risco/{z}/{x}/{y}.png`
+      : `${basePath}tiles/evitado/{z}/{x}/{y}.png`;
 
   const legendaAtiva = camadaAtiva === "risco" ? CLASSES_RISCO : CLASSES_EVITADO;
   const tituloLegenda =

@@ -5,7 +5,7 @@
 import Layout from "@/components/Layout";
 import { useEffect, useState, useRef } from "react";
 import { Link } from "wouter";
-import { ArrowRight, TreePine, MapPin, TrendingDown, BarChart3 } from "lucide-react";
+import { ArrowRight, TreePine, MapPin, TrendingDown, BarChart3, ShieldCheck } from "lucide-react";
 import desmatamentoData from "@/data/desmatamento.json";
 
 const HERO_IMG = "https://d2xsxph8kpxj0f.cloudfront.net/310419663028375704/duTvPYuJ7tMWZ778dehMaL/hero-amazonia-7RADVFFLPdKKonoZx4vaUp.webp";
@@ -134,7 +134,7 @@ export default function Home() {
                 <div className="inline-flex items-center justify-center w-12 h-12 rounded-full mb-3" style={{ background: "rgba(46,125,50,0.1)" }}>
                   <TreePine size={22} style={{ color: "#2E7D32" }} />
                 </div>
-                <AnimatedCounter target={26} />
+                <AnimatedCounter target={141} />
                 <p className="text-sm mt-1" style={{ color: "#7a7568" }}>Municípios do MT</p>
               </div>
               <div className="text-center">
@@ -235,6 +235,44 @@ export default function Home() {
             <div className="text-center mt-8">
               <Link href="/estados" className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold no-underline transition-all hover:shadow-md" style={{ background: "#2E7D32", color: "#fff" }}>
                 Ver todos os estados <ArrowRight size={16} />
+              </Link>
+            </div>
+          </div>
+        </section>
+      </FadeInSection>
+
+      {/* Seção Mapa de Risco */}
+      <FadeInSection>
+        <section className="py-20" style={{ background: "#1a3a2a" }}>
+          <div className="container">
+            <div className="text-center mb-8">
+              <p className="text-sm font-semibold tracking-widest uppercase mb-3" style={{ color: "#a8d5a2" }}>
+                Modelo ACEU — Resolução 30m
+              </p>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: "#fff", fontFamily: "'Merriweather', serif" }}>
+                Mapa de Risco e Desmatamento Evitado
+              </h2>
+              <p className="text-base mx-auto" style={{ color: "rgba(255,255,255,0.7)", maxWidth: "650px", lineHeight: 1.7 }}>
+                Visualização pixel a pixel (30m) do risco de desmatamento e das áreas efetivamente preservadas no Mato Grosso. Resultado do modelo ACEU aplicado com dados MapBiomas (2008-2022).
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+              <div className="text-center">
+                <p className="text-3xl font-bold" style={{ color: "#a8d5a2" }}>139.507</p>
+                <p className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>km² de desmatamento evitado</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-bold" style={{ color: "#a8d5a2" }}>813.943</p>
+                <p className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>km² de floresta de referência (2008)</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl font-bold" style={{ color: "#a8d5a2" }}>62.151</p>
+                <p className="text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>km² desmatados (2008-2022)</p>
+              </div>
+            </div>
+            <div className="text-center">
+              <Link href="/mapa-risco" className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-sm font-semibold no-underline transition-all hover:shadow-md" style={{ background: "#fff", color: "#1a3a2a" }}>
+                <ShieldCheck size={16} /> Explorar Mapa de Risco <ArrowRight size={16} />
               </Link>
             </div>
           </div>
