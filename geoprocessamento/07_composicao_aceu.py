@@ -24,7 +24,8 @@ import numpy as np
 import rasterio
 from rasterio.warp import reproject, Resampling
 from config import (
-    DADOS_BRUTOS_DIR, RASTERS_DIR, CRS_PROJETO
+    DADOS_BRUTOS_DIR, RASTERS_DIR, CRS_PROJETO,
+    obter_mapbiomas, ANO_T0
 )
 
 # Classes MapBiomas que representam floresta (referência para o modelo)
@@ -66,12 +67,8 @@ def gerar_mascara_floresta(transform, shape):
     Apenas pixels com floresta participam da classificação de risco.
     Se MapBiomas não estiver disponível, usa a máscara do estado como fallback.
     """
-    # Tentar carregar MapBiomas
-    caminho_mapbiomas = None
-    for f in os.listdir(DADOS_BRUTOS_DIR):
-        if "mapbiomas" in f.lower() and (f.endswith(".tif") or f.endswith(".tiff")):
-            caminho_mapbiomas = os.path.join(DADOS_BRUTOS_DIR, f)
-            break
+    # Tentar carregar MapBiomas usando busca inteligente do config
+    caminho_mapbiomas = obter_mapbiomas(ANO_T0)
 
     if caminho_mapbiomas is None:
         print("  [AVISO] MapBiomas não encontrado.")

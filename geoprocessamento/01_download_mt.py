@@ -176,8 +176,8 @@ def download_ucs():
 
 
 def download_quilombos():
-    """Baixa territórios quilombolas do INCRA."""
-    print("\n[6/8] Territórios Quilombolas (INCRA)")
+    """Baixa territórios quilombolas do INCRA (opcional para MT)."""
+    print("\n[6/8] Territórios Quilombolas (INCRA) [OPCIONAL]")
     destino_dir = os.path.join(DADOS_BRUTOS_DIR, "quilombos")
 
     if os.path.exists(destino_dir) and any(
@@ -194,13 +194,22 @@ def download_quilombos():
     sucesso = download_arquivo(url_incra, destino_zip, "Quilombos - INCRA")
 
     if sucesso:
-        extrair_zip(destino_zip, destino_dir)
-        return True
+        try:
+            extrair_zip(destino_zip, destino_dir)
+            return True
+        except (zipfile.BadZipFile, Exception) as e:
+            print(f"  [AVISO] Arquivo baixado não é um ZIP válido: {e}")
+            # Remover arquivo corrompido
+            if os.path.exists(destino_zip):
+                os.remove(destino_zip)
+            print("  Quilombolas são opcionais para o MT (impacto mínimo).")
+            print("  O pipeline continuará sem este dado.")
+            return True  # Não bloqueia o pipeline
     else:
         print("  [AVISO] Download automático falhou.")
-        print("  Baixe manualmente de: https://dados.gov.br/dados/conjuntos-dados/sistema-de-certificacao-de-comunidades-quilombolas")
-        print(f"  Salve o shapefile em: {destino_dir}/")
-        return False
+        print("  Quilombolas são opcionais para o MT (impacto mínimo).")
+        print("  O pipeline continuará sem este dado.")
+        return True  # Não bloqueia o pipeline
 
 
 def download_mapbiomas():
