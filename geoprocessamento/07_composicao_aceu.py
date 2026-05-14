@@ -208,6 +208,7 @@ def main():
     meta_bruto = meta.copy()
     meta_bruto["dtype"] = "int16"
     meta_bruto["compress"] = "lzw"
+    meta_bruto["BIGTIFF"] = "YES"
     with rasterio.open(caminho_bruto, "w", **meta_bruto) as dst:
         dst.write(risco_bruto, 1)
 
@@ -219,6 +220,7 @@ def main():
     meta_aceu = meta.copy()
     meta_aceu["dtype"] = "uint8"
     meta_aceu["compress"] = "lzw"
+    meta_aceu["BIGTIFF"] = "YES"
     with rasterio.open(caminho_aceu, "w", **meta_aceu) as dst:
         dst.write(risco_classes, 1)
     tamanho_mb = os.path.getsize(caminho_aceu) / 1024 / 1024
@@ -229,6 +231,7 @@ def main():
     meta_floresta = meta.copy()
     meta_floresta["dtype"] = "uint8"
     meta_floresta["compress"] = "lzw"
+    meta_floresta["BIGTIFF"] = "YES"
     with rasterio.open(caminho_floresta, "w", **meta_floresta) as dst:
         dst.write(mascara_floresta.astype(np.uint8), 1)
 

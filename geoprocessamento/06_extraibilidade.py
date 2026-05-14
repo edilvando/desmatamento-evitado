@@ -103,7 +103,25 @@ def calcular_pressao_mineral(meta, transform, shape, mascara):
         return np.where(mascara == 1, 1, 0).astype(np.uint8)
 
     print(f"  Carregando mineração: {os.path.basename(caminho)}")
-    gdf = gpd.read_file(caminho)
+    # Tentar vários encodings (shapefiles brasileiros usam latin-1)
+    gdf = None
+    for enc in ["utf-8", "latin-1", "cp1252"]:
+        try:
+            gdf = gpd.read_file(caminho, encoding=enc)
+            break
+        except Exception as e:
+            if "codec" in str(e).lower() or "decode" in str(e).lower():
+                continue
+            gdf = gpd.read_file(caminho, encoding=enc)
+            break
+    if gdf is None:
+        print("  [ERRO] Não foi possível ler shapefile de mineração")
+        return np.where(mascara == 1, 1, 0).astype(np.uint8)
+    # Corrigir geometrias inválidas
+    n_inv = (~gdf.geometry.is_valid).sum()
+    if n_inv > 0:
+        print(f"  Corrigindo {n_inv} geometrias inválidas...")
+        gdf["geometry"] = gdf.geometry.buffer(0)
     gdf = gdf.to_crs(CRS_PROJETO)
 
     # Recortar para MT
@@ -174,6 +192,7 @@ def main():
     meta_out = meta.copy()
     meta_out["dtype"] = "uint8"
     meta_out["compress"] = "lzw"
+    meta_out["BIGTIFF"] = "YES"
     with rasterio.open(caminho, "w", **meta_out) as dst:
         dst.write(componente_e, 1)
     tamanho_mb = os.path.getsize(caminho) / 1024 / 1024

@@ -175,6 +175,7 @@ def main():
     meta_out = meta.copy()
     meta_out["dtype"] = "uint8"
     meta_out["compress"] = "lzw"
+    meta_out["BIGTIFF"] = "YES"
     with rasterio.open(caminho, "w", **meta_out) as dst:
         dst.write(componente_c, 1)
     tamanho_mb = os.path.getsize(caminho) / 1024 / 1024

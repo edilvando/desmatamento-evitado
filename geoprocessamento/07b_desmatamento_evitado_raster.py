@@ -211,6 +211,7 @@ def main():
     meta_out["dtype"] = "uint8"
     meta_out["compress"] = "lzw"
     meta_out["nodata"] = 0
+    meta_out["BIGTIFF"] = "YES"
     with rasterio.open(caminho, "w", **meta_out) as dst:
         dst.write(resultado, 1)
         dst.update_tags(

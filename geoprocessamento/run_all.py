@@ -25,6 +25,7 @@ Referências:
     VENDRUSCULO et al. Aplicação da metodologia do Hectare Indicator. Embrapa, 2019.
 """
 import sys
+import os
 import time
 import argparse
 import importlib
@@ -78,7 +79,22 @@ def main():
                         help="Executar apenas esta etapa")
     parser.add_argument("--skip-download", action="store_true",
                         help="Pular a etapa de download (útil se dados já estão disponíveis)")
+    parser.add_argument("--clean", action="store_true",
+                        help="Limpar rasters antigos antes de re-executar (evita shape mismatch)")
     args = parser.parse_args()
+
+    # Limpar rasters antigos se solicitado
+    if args.clean:
+        from config import RASTERS_DIR
+        if os.path.exists(RASTERS_DIR):
+            rasters_removidos = 0
+            for f in os.listdir(RASTERS_DIR):
+                if f.endswith(".tif") and f != "grade_mt.tif" and f != "mascara_mt.tif":
+                    os.remove(os.path.join(RASTERS_DIR, f))
+                    rasters_removidos += 1
+            print(f"  [CLEAN] {rasters_removidos} rasters antigos removidos (grade e máscara preservados)")
+        else:
+            print("  [CLEAN] Pasta rasters/ não existe ainda")
 
     print("=" * 70)
     print("  PIPELINE ACEU - DESMATAMENTO EVITADO NO MATO GROSSO")

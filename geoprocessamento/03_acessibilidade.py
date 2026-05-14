@@ -155,11 +155,13 @@ def reclassificar_acessibilidade(distancia, mascara):
 
 
 def salvar_raster(dados, meta, nome_arquivo):
-    """Salva um array como GeoTIFF."""
+    """Salva um array como GeoTIFF (com BIGTIFF para rasters grandes)."""
     caminho = os.path.join(RASTERS_DIR, nome_arquivo)
     meta_out = meta.copy()
     meta_out["dtype"] = dados.dtype.name
     meta_out["compress"] = "lzw"
+    # Rasters com >4GB precisam de BIGTIFF
+    meta_out["BIGTIFF"] = "YES"
 
     with rasterio.open(caminho, "w", **meta_out) as dst:
         dst.write(dados, 1)

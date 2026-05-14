@@ -56,7 +56,31 @@ def carregar_camada_por_caminho(caminho, nome_camada):
 
     print(f"  Carregando {nome_camada}: {os.path.basename(caminho)}")
     print(f"    Caminho: {caminho}")
-    gdf = gpd.read_file(caminho)
+
+    # Tentar UTF-8 primeiro, depois latin-1 (comum em shapefiles brasileiros)
+    gdf = None
+    for enc in ["utf-8", "latin-1", "cp1252", "iso-8859-1"]:
+        try:
+            gdf = gpd.read_file(caminho, encoding=enc)
+            break
+        except (UnicodeDecodeError, Exception) as e:
+            if "codec" in str(e).lower() or "decode" in str(e).lower():
+                print(f"    Encoding {enc} falhou, tentando próximo...")
+                continue
+            else:
+                gdf = gpd.read_file(caminho, encoding=enc)
+                break
+
+    if gdf is None:
+        print(f"  [ERRO] Não foi possível ler {nome_camada} com nenhum encoding")
+        return None
+
+    # Corrigir geometrias inválidas (TopologyException)
+    n_invalidas = (~gdf.geometry.is_valid).sum()
+    if n_invalidas > 0:
+        print(f"    Corrigindo {n_invalidas} geometrias inválidas com buffer(0)...")
+        gdf["geometry"] = gdf.geometry.buffer(0)
+
     print(f"    {len(gdf)} feições carregadas")
     return gdf
 
@@ -186,6 +210,11 @@ def main():
     for nome, gdf in [("TIs", gdf_ti), ("UCs", gdf_uc), ("Quilombos", gdf_quilombo)]:
         if gdf is not None and len(gdf) > 0:
             gdf = gdf.to_crs(CRS_PROJETO)
+            # Corrigir geometrias inválidas após reprojeção
+            n_inv = (~gdf.geometry.is_valid).sum()
+            if n_inv > 0:
+                print(f"  {nome}: corrigindo {n_inv} geometrias inválidas...")
+                gdf["geometry"] = gdf.geometry.buffer(0)
             camadas.append(gdf)
             print(f"  {nome}: {len(gdf)} feições reprojetadas")
         else:
@@ -202,6 +231,7 @@ def main():
     meta_out = meta.copy()
     meta_out["dtype"] = "uint8"
     meta_out["compress"] = "lzw"
+    meta_out["BIGTIFF"] = "YES"
     with rasterio.open(caminho, "w", **meta_out) as dst:
         dst.write(componente_u, 1)
     tamanho_mb = os.path.getsize(caminho) / 1024 / 1024
