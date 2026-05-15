@@ -8,12 +8,14 @@ Processo:
 4. Reprojeta para EPSG:31981
 5. Rasteriza na grade de referência
 
-O componente U é binário:
+O componente U é uma máscara binária de áreas protegidas:
 - U(x) = 1 se o pixel pertence a qualquer área protegida
 - U(x) = 0 caso contrário
 
-Na fórmula ACEU, U entra com sinal negativo (reduz o risco):
-R_bruto(x) = A(x) + C(x) + E(x) - U(x)
+Na composição ACEU (etapa 07), a proteção é aplicada por reclassificação:
+pixels em áreas protegidas recebem risco 1 (mínimo) após o cálculo de
+R_bruto = A + C + E. Essa abordagem segue o caso de estudo do Cerrado
+(ECOMETRICA, 2018, Appendix B).
 
 Saída: rasters/componente_u.tif (uint8, valores 0 ou 1)
 """
@@ -229,7 +231,7 @@ def main():
     print("\n[5] Unindo todas as áreas protegidas...")
     gdf_protecao = unir_areas_protegidas(camadas)
 
-    print("\n[6] Rasterizando componente U...")
+    print("\n[6] Rasterizando componente U (máscara de proteção)...")
     componente_u = rasterizar_protecao(gdf_protecao, shape, transform, mascara)
 
     print("\n[7] Salvando componente U...")
@@ -244,6 +246,8 @@ def main():
     print(f"  Salvo: {caminho} ({tamanho_mb:.1f} MB)")
 
     print("\n[OK] Etapa 04 concluída.")
+    print("  O componente U é uma máscara binária (0/1) de áreas protegidas.")
+    print("  Na etapa 07, pixels protegidos serão reclassificados para risco 1 (mínimo).")
     print("  Próximo passo: python 05_cultivabilidade.py")
 
 
