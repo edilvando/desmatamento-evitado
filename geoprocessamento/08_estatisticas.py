@@ -460,20 +460,21 @@ def exportar_json_frontend(df_areas):
         perda_esperada = row["perda_esperada_20anos_ha"]
         T = ANO_FIM - ANO_INICIO  # Período real (14 anos)
 
-        # Usar dados reais se disponíveis
+        perda_esp_T = perda_esperada * (T / HORIZONTE_REF)
+
+        # Usar dados reais do raster de desmatamento evitado se disponíveis
         if cod_mun in dados_evitado_por_mun:
             dados_real = dados_evitado_por_mun[cod_mun]
             desmatado = dados_real["desmatado_ha"]
-            desm_evitado = dados_real["evitado_ha"]
             floresta_atual = dados_real["floresta_atual_ha"]
         else:
             # Fallback: estimar com base na perda esperada
-            perda_esp_T = perda_esperada * (T / HORIZONTE_REF)
             desmatado = perda_esp_T * 0.5  # Estimativa conservadora
-            desm_evitado = max(0, perda_esp_T - desmatado)
             floresta_atual = floresta_ref - desmatado
 
-        perda_esp_T = perda_esperada * (T / HORIZONTE_REF)
+        # Desmatamento evitado = perda esperada - perda observada
+        # Isso garante que a taxa de proteção nunca ultrapasse 100%
+        desm_evitado = max(0, perda_esp_T - desmatado)
         taxa_protecao = (desm_evitado / perda_esp_T * 100) if perda_esp_T > 0 else 0
 
         registros.append({
