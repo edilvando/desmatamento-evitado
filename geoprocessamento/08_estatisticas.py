@@ -60,6 +60,35 @@ def carregar_risco_aceu():
         return src.read(1)
 
 
+def _buscar_nomes_ibge():
+    """Busca nomes dos municípios do MT via API do IBGE (localidades)."""
+    import requests
+    url = "https://servicodados.ibge.gov.br/api/v1/localidades/estados/51/municipios"
+    try:
+        resp = requests.get(url, timeout=30)
+        resp.raise_for_status()
+        dados = resp.json()
+        return {str(m["id"]): m["nome"] for m in dados}
+    except Exception as e:
+        print(f"  [AVISO] Não foi possível buscar nomes do IBGE: {e}")
+        return {}
+
+
+def _carregar_nomes_cache():
+    """Carrega ou cria cache local de nomes dos municípios."""
+    cache_path = os.path.join(DADOS_BRUTOS_DIR, "nomes_municipios_mt.json")
+    if os.path.exists(cache_path):
+        with open(cache_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    # Buscar da API e salvar cache
+    nomes = _buscar_nomes_ibge()
+    if nomes:
+        with open(cache_path, "w", encoding="utf-8") as f:
+            json.dump(nomes, f, ensure_ascii=False, indent=2)
+        print(f"  Cache de nomes salvo: {cache_path} ({len(nomes)} municípios)")
+    return nomes
+
+
 def carregar_municipios():
     """Carrega malha municipal do MT e reprojeta."""
     caminho = os.path.join(DADOS_BRUTOS_DIR, "municipios_mt.geojson")
@@ -74,12 +103,22 @@ def carregar_municipios():
     else:
         gdf["cod_municipio"] = gdf.index.astype(str)
 
+    # Buscar nomes dos municípios
     if "NM_MUN" in gdf.columns:
         gdf["nome_municipio"] = gdf["NM_MUN"]
     elif "nome" in gdf.columns:
         gdf["nome_municipio"] = gdf["nome"]
     else:
-        gdf["nome_municipio"] = gdf["cod_municipio"]
+        # GeoJSON da API v3 do IBGE só tem 'codarea', sem nome
+        # Buscar nomes via API de localidades
+        print("  GeoJSON sem nomes. Buscando via API do IBGE...")
+        nomes_ibge = _carregar_nomes_cache()
+        if nomes_ibge:
+            gdf["nome_municipio"] = gdf["cod_municipio"].map(nomes_ibge).fillna(gdf["cod_municipio"])
+            n_encontrados = gdf["nome_municipio"].ne(gdf["cod_municipio"]).sum()
+            print(f"  {n_encontrados}/{len(gdf)} nomes encontrados via API")
+        else:
+            gdf["nome_municipio"] = gdf["cod_municipio"]
 
     print(f"  {len(gdf)} municípios carregados")
     return gdf
@@ -372,27 +411,79 @@ def exportar_json_frontend(df_areas):
     """
     Exporta JSON para o painel interativo do frontend.
     Formato compatível com o componente PainelEstatisticas.
+    Usa dados reais do raster de desmatamento evitado (07b) quando disponível.
     """
     print("\n[11] Exportando JSON para o frontend...")
 
+    # Tentar carregar dados reais do raster de desmatamento evitado
+    raster_evitado_path = os.path.join(RASTERS_DIR, "desmatamento_evitado.tif")
+    dados_evitado_por_mun = {}
+
+    if os.path.exists(raster_evitado_path):
+        print("  Carregando raster de desmatamento evitado para estatísticas reais...")
+        with rasterio.open(raster_evitado_path) as src:
+            evitado = src.read(1)
+        # Rasterizar municípios para contar pixels de desmatamento evitado
+        meta, transform, shape = carregar_grade_referencia()
+        gdf_mun = carregar_municipios()
+        gdf_mun_copy = gdf_mun.copy()
+        gdf_mun_copy["id_raster"] = range(1, len(gdf_mun_copy) + 1)
+        geometrias = [
+            (geom, id_r)
+            for geom, id_r in zip(gdf_mun_copy.geometry, gdf_mun_copy["id_raster"])
+            if geom is not None
+        ]
+        raster_mun = rasterize(geometrias, out_shape=shape, transform=transform, fill=0, dtype=np.int16)
+
+        for _, row_mun in gdf_mun_copy.iterrows():
+            id_r = row_mun["id_raster"]
+            cod = row_mun["cod_municipio"]
+            mascara = raster_mun == id_r
+            evitado_mun = evitado[mascara]
+            # Classes do raster evitado: 1=mantida, 2=parcial, 3=evitado, 4=forte, 5=perda, 6=inesperada
+            floresta_t0 = np.sum(evitado_mun > 0) * AREA_PIXEL_HA
+            desmatado = np.sum((evitado_mun == 5) | (evitado_mun == 6)) * AREA_PIXEL_HA
+            evitado_total = np.sum((evitado_mun == 3) | (evitado_mun == 4)) * AREA_PIXEL_HA
+            floresta_atual = floresta_t0 - desmatado
+            dados_evitado_por_mun[cod] = {
+                "floresta_t0_ha": floresta_t0,
+                "desmatado_ha": desmatado,
+                "evitado_ha": evitado_total,
+                "floresta_atual_ha": floresta_atual,
+            }
+        print(f"  Dados reais de desmatamento evitado para {len(dados_evitado_por_mun)} municípios")
+
     registros = []
     for _, row in df_areas.iterrows():
+        cod_mun = row["cod_municipio"]
         floresta_ref = row["area_floresta_total_ha"]
         perda_esperada = row["perda_esperada_20anos_ha"]
-        # Estimar desmatamento evitado simplificado (sem dados observados)
-        # Usar taxa média de desmatamento do MT (~0.5% ao ano sobre floresta)
-        desmatado_estimado = floresta_ref * 0.005 * 14  # 14 anos de série (2008-2022)
-        desm_evitado = max(0, perda_esperada * (14/20) - desmatado_estimado)
-        taxa_protecao = (desm_evitado / (perda_esperada * 14/20) * 100) if perda_esperada > 0 else 0
+        T = ANO_FIM - ANO_INICIO  # Período real (14 anos)
+
+        # Usar dados reais se disponíveis
+        if cod_mun in dados_evitado_por_mun:
+            dados_real = dados_evitado_por_mun[cod_mun]
+            desmatado = dados_real["desmatado_ha"]
+            desm_evitado = dados_real["evitado_ha"]
+            floresta_atual = dados_real["floresta_atual_ha"]
+        else:
+            # Fallback: estimar com base na perda esperada
+            perda_esp_T = perda_esperada * (T / HORIZONTE_REF)
+            desmatado = perda_esp_T * 0.5  # Estimativa conservadora
+            desm_evitado = max(0, perda_esp_T - desmatado)
+            floresta_atual = floresta_ref - desmatado
+
+        perda_esp_T = perda_esperada * (T / HORIZONTE_REF)
+        taxa_protecao = (desm_evitado / perda_esp_T * 100) if perda_esp_T > 0 else 0
 
         registros.append({
-            "cod_municipio": row["cod_municipio"],
-            "nome_municipio": row.get("nome_municipio", row["cod_municipio"]),
+            "cod_municipio": cod_mun,
+            "nome_municipio": row.get("nome_municipio", cod_mun),
             "area_total_ha": round(row["area_municipio_ha"], 0),
             "floresta_referencia_ha": round(floresta_ref, 0),
-            "floresta_atual_ha": round(floresta_ref - desmatado_estimado, 0),
-            "desmatado_ha": round(desmatado_estimado, 0),
-            "perda_esperada_ha": round(perda_esperada * (14/20), 0),
+            "floresta_atual_ha": round(floresta_atual, 0),
+            "desmatado_ha": round(desmatado, 0),
+            "perda_esperada_ha": round(perda_esp_T, 0),
             "desmatamento_evitado_ha": round(desm_evitado, 0),
             "taxa_protecao_pct": round(taxa_protecao, 1),
             "classe_risco_1_ha": round(row["area_classe_1_ha"], 0),
