@@ -11,6 +11,13 @@ import { useEffect, useState, useMemo } from "react";
 import { MapContainer, TileLayer, GeoJSON, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import type { FeatureCollection } from "geojson";
+import estatisticasMunicipios from "@/data/estatisticas_municipios.json";
+
+// Lookup de código IBGE -> nome do município
+const NOMES_MUNICIPIOS: Record<string, string> = {};
+(estatisticasMunicipios as any[]).forEach((m) => {
+  NOMES_MUNICIPIOS[m.cod_municipio] = m.nome_municipio;
+});
 
 // Fallback caso metadata.json não exista
 const DEFAULT_META = {
@@ -223,8 +230,9 @@ export default function RasterMap({
               opacity: 0.5,
             }}
             onEachFeature={(feature, layer) => {
-              const nome = feature.properties?.NM_MUN || feature.properties?.nome || "";
               const codigo = feature.properties?.CD_MUN || feature.properties?.codarea || "";
+              // Buscar nome no lookup (GeoJSON pode ter apenas CD_MUN)
+              const nome = feature.properties?.NM_MUN || feature.properties?.nome || NOMES_MUNICIPIOS[codigo] || codigo;
               layer.bindTooltip(nome, { sticky: true });
               if (onMunicipioClick) {
                 layer.on("click", () => onMunicipioClick(codigo, nome));

@@ -17,7 +17,7 @@ const navItems = [
   { href: "/mapa-risco", label: "Mapa de Risco" },
   { href: "/metodologia", label: "Metodologia" },
   { href: "/fontes", label: "Fontes de Dados" },
-  { href: "/codigo", label: "Código" },
+  { href: "/codigo", label: "Documentação" },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
