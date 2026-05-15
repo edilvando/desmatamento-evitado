@@ -7,8 +7,8 @@ import Layout from "@/components/Layout";
 import BrazilMap from "@/components/BrazilMap";
 import { useState, useMemo, useRef, useEffect } from "react";
 import {
-  BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, Legend, AreaChart, Area, Cell
+  BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, AreaChart, Area, Cell
 } from "recharts";
 import { Search, ArrowUpDown, Filter, X, TrendingDown, TrendingUp, TreePine, Calendar } from "lucide-react";
 import desmatamentoData from "@/data/desmatamento.json";
@@ -97,14 +97,7 @@ export default function Estados() {
       .map(([ano, val]) => ({ ano, desmatamento: val }));
   }, [estadoDetail]);
 
-  const estadoEvitado = useMemo(() => {
-    if (!estadoDetail?.desmatamento_evitado) return [];
-    return Object.entries(estadoDetail.desmatamento_evitado)
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([ano, val]: [string, any]) => ({
-        ano, esperado: val.esperado, observado: val.observado, evitado: val.evitado,
-      }));
-  }, [estadoDetail]);
+
 
   const estadoStats = useMemo(() => {
     if (!estadoDetail) return null;
@@ -112,9 +105,7 @@ export default function Estados() {
     const prevYear = String(Number(tableYear) - 1);
     const vPrev = estadoDetail.desmatamento_anual[prevYear as keyof typeof estadoDetail.desmatamento_anual] || 0;
     const change = vPrev > 0 ? ((vAno - vPrev) / vPrev * 100) : 0;
-    const totalEvitado = Object.values(estadoDetail.desmatamento_evitado || {})
-      .reduce((s: number, v: any) => s + (v.evitado > 0 ? v.evitado : 0), 0);
-    return { vAno, change, totalEvitado, prevYear };
+    return { vAno, change, prevYear };
   }, [estadoDetail, tableYear]);
 
   const toggleSort = (col: "nome" | "ano" | "acumulado") => {
@@ -140,7 +131,7 @@ export default function Estados() {
             Desmatamento por Estado
           </h1>
           <p className="text-base mt-2" style={{ color: "rgba(255,255,255,0.8)", maxWidth: "600px" }}>
-            Série histórica de 2008 a 2024 para todos os estados brasileiros, com cálculo de desmatamento evitado.
+            Série histórica de desmatamento observado (PRODES/INPE), 2008 a 2024, para todos os estados brasileiros.
           </p>
         </div>
       </section>
@@ -307,8 +298,8 @@ export default function Estados() {
                     <TreePine size={18} style={{ color: "#2E7D32" }} />
                   </div>
                   <div>
-                    <p className="text-lg font-bold" style={{ color: "#2E7D32" }}>{Math.round(estadoStats.totalEvitado).toLocaleString("pt-BR")} km²</p>
-                    <p className="text-xs" style={{ color: "#9a958e" }}>Total evitado (acumulado)</p>
+                    <p className="text-lg font-bold" style={{ color: "#2E7D32" }}>{estadoDetail.desmatamento_acumulado_km2.toLocaleString("pt-BR")} km²</p>
+                    <p className="text-xs" style={{ color: "#9a958e" }}>Desmatamento acumulado</p>
                   </div>
                 </div>
               </div>
@@ -333,32 +324,15 @@ export default function Estados() {
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
-                <div>
-                  <h4 className="text-sm font-semibold mb-4" style={{ color: "#5a5448" }}>Desmatamento Evitado (Esperado vs Observado)</h4>
-                  {estadoEvitado.length > 0 ? (
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={estadoEvitado}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e8e5dd" />
-                        <XAxis dataKey="ano" tick={{ fontSize: 11, fill: "#7a7568" }} />
-                        <YAxis tick={{ fontSize: 11, fill: "#7a7568" }} />
-                        <Tooltip
-                          contentStyle={{ background: "#fff", border: "1px solid #e8e5dd", borderRadius: "8px", fontSize: "12px" }}
-                          formatter={(value: number, name: string) => {
-                            const label = name === "esperado" ? "Esperado" : name === "observado" ? "Observado" : "Evitado";
-                            return [`${value.toLocaleString("pt-BR")} km²`, label];
-                          }}
-                        />
-                        <Legend formatter={(v) => v === "esperado" ? "Esperado" : v === "observado" ? "Observado" : "Evitado"} />
-                        <Line type="monotone" dataKey="esperado" stroke="#C8A951" strokeWidth={2.5} dot={{ r: 3 }} />
-                        <Line type="monotone" dataKey="observado" stroke="#BF360C" strokeWidth={2.5} dot={{ r: 3 }} />
-                        <Line type="monotone" dataKey="evitado" stroke="#2E7D32" strokeWidth={2.5} strokeDasharray="5 5" dot={{ r: 3 }} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="flex items-center justify-center h-[300px]" style={{ color: "#9a958e" }}>
-                      <p className="text-sm">Dados insuficientes para cálculo do desmatamento evitado.</p>
-                    </div>
-                  )}
+                <div className="flex flex-col justify-center items-center p-6 rounded-xl" style={{ background: "#f9f8f5", border: "1px solid #e8e5dd", minHeight: "300px" }}>
+                  <TreePine size={32} style={{ color: "#2E7D32", marginBottom: "12px" }} />
+                  <h4 className="text-sm font-semibold mb-3 text-center" style={{ color: "#5a5448" }}>Modelo ACEU — Desmatamento Evitado</h4>
+                  <p className="text-xs text-center max-w-xs" style={{ color: "#7a7568" }}>
+                    O cálculo de desmatamento evitado pelo modelo ACEU (Hectares Indicator) foi aplicado ao estado do Mato Grosso para o período 2008-2022. Consulte a aba <strong>Mato Grosso</strong> e o <strong>Mapa de Risco</strong> para os resultados detalhados.
+                  </p>
+                  <p className="text-xs text-center mt-3" style={{ color: "#9a958e" }}>
+                    Os demais estados serão processados em etapas futuras do projeto.
+                  </p>
                 </div>
               </div>
             </div>

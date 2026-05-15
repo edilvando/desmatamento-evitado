@@ -1,483 +1,193 @@
 /*
- * CodigoProtegido.tsx — Área protegida com senha para código documentado
- * Senha: 123Troc@r (verificação no frontend)
+ * CodigoProtegido.tsx — Documentação Técnica do Pipeline de Geoprocessamento
+ * Descreve as etapas, parâmetros, fontes de dados e como reproduzir
  */
 import Layout from "@/components/Layout";
 import { useState } from "react";
-import { Lock, Unlock, Copy, Check, ChevronDown, ChevronRight } from "lucide-react";
+import { Lock, Unlock, ChevronDown, ChevronRight, Terminal, Database, Map, Layers, Calculator, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 
 const SENHA_CORRETA = "123Troc@r";
 
-interface CodeSection {
+interface PipelineStep {
+  id: string;
   titulo: string;
-  arquivo: string;
-  linguagem: string;
+  script: string;
   descricao: string;
-  codigo: string;
+  entrada: string[];
+  saida: string[];
+  parametros?: string;
 }
 
-const secoesCodigo: CodeSection[] = [
+const etapasPipeline: PipelineStep[] = [
   {
-    titulo: "Geração dos Dados",
-    arquivo: "generate_data.py",
-    linguagem: "Python",
-    descricao: "Script Python que gera os dados JSON utilizados pelo sistema. Contém os dados de desmatamento por estado (2008-2024), todos os 141 municípios do Mato Grosso (2008-2024) com dados oficiais do PRODES/TerraBrasilis, cálculo do desmatamento evitado pela metodologia Hectares Indicator, metadados das fontes de dados e publicações científicas.",
-    codigo: `#!/usr/bin/env python3
-"""
-generate_data.py — Geração dos dados para o Sistema de Desmatamento Evitado
-Autor: Edilvando Pereira Eufrazio
-Embrapa Agrossilvipastoril (CPAMT)
-
-Este script gera o arquivo JSON com todos os dados utilizados pelo sistema web.
-Os dados são baseados em fontes públicas:
-- PRODES/INPE (TerraBrasilis) — desmatamento na Amazônia Legal
-- MapBiomas — cobertura e uso da terra
-- Global Forest Change (Hansen et al., 2013) — perda florestal global
-- IBGE — limites municipais e estaduais
-
-Metodologia de Desmatamento Evitado:
-- Baseada no Hectares Indicator (Tipper & Morel, 2016)
-- Modelo ACEU: Acessibilidade, Cultivabilidade, Extraibilidade, Unprotected
-- Perda esperada estimada pela média móvel de 3 anos (proxy simplificada)
-- Desmatamento evitado = Perda esperada - Perda observada
-"""
-
-import json
-import os
-
-def calcular_desmatamento_evitado(serie_anual: dict) -> dict:
-    """
-    Calcula o desmatamento evitado usando média móvel de 3 anos
-    como proxy da perda esperada.
-    
-    Args:
-        serie_anual: dicionário {ano: valor_km2}
-    
-    Returns:
-        dicionário {ano: {esperado, observado, evitado}}
-    """
-    anos = sorted(serie_anual.keys())
-    resultado = {}
-    
-    for i, ano in enumerate(anos):
-        if i >= 3:  # precisa de 3 anos anteriores
-            media_3anos = sum(
-                serie_anual[anos[j]] for j in range(i-3, i)
-            ) / 3
-            observado = serie_anual[ano]
-            evitado = round(media_3anos - observado, 1)
-            resultado[ano] = {
-                "esperado": round(media_3anos, 1),
-                "observado": observado,
-                "evitado": evitado
-            }
-    
-    return resultado
-
-def gerar_dados_estados() -> list:
-    """
-    Gera dados de desmatamento para todos os 27 estados brasileiros.
-    Valores baseados em dados públicos do PRODES/INPE e MapBiomas.
-    """
-    estados = [
-        # ... dados de cada estado com série histórica
-        # Exemplo:
-        {
-            "nome": "Pará",
-            "sigla": "PA",
-            "bioma_principal": "Amazônia",
-            "desmatamento_acumulado_km2": 268742,
-            "desmatamento_anual": {
-                "2008": 5180, "2009": 4281, "2010": 3770,
-                # ... demais anos
-            }
-        },
-        # ... demais estados
-    ]
-    
-    # Calcula desmatamento evitado para cada estado
-    for estado in estados:
-        estado["desmatamento_evitado"] = calcular_desmatamento_evitado(
-            estado["desmatamento_anual"]
-        )
-    
-    return estados
-
-def gerar_dados_municipios_mt() -> list:
-    """
-    Gera dados detalhados para municípios do Mato Grosso.
-    Inclui cobertura florestal, áreas protegidas e série temporal.
-    """
-    municipios = [
-        # ... dados de cada município
-        # Exemplo:
-        {
-            "nome": "São Félix do Araguaia",
-            "bioma": "Amazônia/Cerrado",
-            "area_km2": 16832,
-            "cobertura_florestal_pct": 42.3,
-            "area_protegida_km2": 3200,
-            "desmatamento_anual": {
-                "2016": 185, "2017": 210, "2018": 195,
-                # ... demais anos
-            }
-        },
-        # ... demais municípios
-    ]
-    
-    for mun in municipios:
-        mun["desmatamento_evitado"] = calcular_desmatamento_evitado(
-            mun["desmatamento_anual"]
-        )
-    
-    return municipios
-
-def gerar_metadados() -> dict:
-    """Gera metadados com fontes de dados e publicações."""
-    return {
-        "fontes_dados": [
-            {
-                "nome": "PRODES — INPE",
-                "descricao": "Monitoramento do desmatamento na Amazônia Legal por satélite",
-                "url": "http://terrabrasilis.dpi.inpe.br/"
-            },
-            # ... demais fontes
-        ],
-        "publicacoes": [
-            {
-                "titulo": "Hectares Indicator Methods and Guidance V2.0",
-                "autores": "Tipper, R.; Morel, A.",
-                "ano": 2016,
-                "tipo": "Guia Metodológico",
-                "instituicao": "Ecometrica",
-                "url": "https://ecometrica.com/"
-            },
-            # ... demais publicações
-        ]
-    }
-
-if __name__ == "__main__":
-    dados = {
-        "estados": gerar_dados_estados(),
-        "municipios_mt": gerar_dados_municipios_mt(),
-        "metadata": gerar_metadados()
-    }
-    
-    output_path = "client/src/data/desmatamento.json"
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(dados, f, ensure_ascii=False, indent=2)
-    
-    print(f"Dados gerados: {output_path}")
-    print(f"  Estados: {len(dados['estados'])}")
-    print(f"  Municípios MT: {len(dados['municipios_mt'])}")`,
+    id: "01",
+    titulo: "Download de Dados Geoespaciais",
+    script: "01_download_mt.py",
+    descricao: "Baixa automaticamente os dados geoespaciais necessários: limites estaduais e municipais do IBGE, rodovias do SNV/DNIT (ou Geofabrik como fallback), Terras Indígenas da FUNAI, Unidades de Conservação do MMA/CNUC, e processos minerários do SIGMINE/ANM. Dados do MapBiomas devem ser obtidos manualmente via plataforma.",
+    entrada: ["APIs IBGE", "SNV/DNIT", "FUNAI", "MMA/CNUC", "SIGMINE/ANM"],
+    saida: ["limite_mt.geojson", "municipios_mt.geojson", "rodovias (shapefile)", "terras_indigenas (shapefile)", "ucs (shapefile)", "mineracao (shapefile)"],
   },
   {
-    titulo: "Layout Principal",
-    arquivo: "client/src/components/Layout.tsx",
-    linguagem: "TypeScript/React",
-    descricao: "Componente de layout compartilhado por todas as páginas. Inclui o header institucional com logo da Embrapa e navegação responsiva, e o footer com créditos e fontes. Design baseado na estética 'Terra Viva' — editorial ambiental.",
-    codigo: `// Layout.tsx — Componente de layout principal
-// Design: "Terra Viva" — Estética Editorial Ambiental
-// Paleta: verde-musgo (#2E7D32), terra-queimada (#8D6E63),
-//         dourado-cerrado (#C8A951), off-white (#FAFAF5)
-// Tipografia: Merriweather (títulos), Source Sans 3 (corpo)
-
-import { Link, useLocation } from "wouter";
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
-
-const EMBRAPA_LOGO = "https://...embrapa-logo.png";
-
-const navItems = [
-  { href: "/", label: "Panorama" },
-  { href: "/estados", label: "Estados" },
-  { href: "/mato-grosso", label: "Mato Grosso" },
-  { href: "/metodologia", label: "Metodologia" },
-  { href: "/fontes", label: "Fontes de Dados" },
-  { href: "/codigo", label: "Código" },
-];
-
-export default function Layout({ children }) {
-  const [location] = useLocation();
-  const [mobileOpen, setMobileOpen] = useState(false);
-
-  return (
-    <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-50 ...">
-        {/* Logo + Nav desktop + Menu mobile */}
-      </header>
-      <main className="flex-1">{children}</main>
-      <footer>
-        {/* Créditos: Edilvando Pereira Eufrazio */}
-        {/* Fontes: PRODES/INPE, MapBiomas, GFC, IBGE */}
-      </footer>
-    </div>
-  );
-}`,
+    id: "02",
+    titulo: "Geração da Grade de Referência",
+    script: "02_grade_mt.py",
+    descricao: "Gera a grade raster de referência para o estado do Mato Grosso no CRS EPSG:31981 (SIRGAS 2000 / UTM 21S) com resolução de 30 metros. Produz também a máscara binária do estado (1 = dentro do MT, 0 = fora). Todos os rasters subsequentes herdam esta grade.",
+    entrada: ["limite_mt.geojson"],
+    saida: ["grade_mt.tif (41775 x 39540 px)", "mascara_mt.tif"],
+    parametros: "CRS: EPSG:31981 | Resolução: 30m | Formato: GeoTIFF BIGTIFF",
   },
   {
-    titulo: "Página de Estados",
-    arquivo: "client/src/pages/Estados.tsx",
-    linguagem: "TypeScript/React",
-    descricao: "Visão macro do desmatamento por estado. Inclui gráfico de série temporal nacional (AreaChart), tabela interativa com filtros por bioma e busca, e painel de detalhes com gráficos de barras e linhas para o estado selecionado. Utiliza Recharts para visualizações.",
-    codigo: `// Estados.tsx — Visão macro por estados do Brasil
-// Funcionalidades:
-// - Gráfico de evolução nacional (AreaChart)
-// - Filtro por bioma (Amazônia, Cerrado, Mata Atlântica, etc.)
-// - Busca por nome/sigla
-// - Tabela ordenável por nome, desmatamento 2024, acumulado
-// - Painel de detalhes com série histórica e desmatamento evitado
-
-import { BarChart, LineChart, AreaChart } from "recharts";
-import desmatamentoData from "@/data/desmatamento.json";
-
-// Cálculo da série nacional agregada
-const serieNacional = anos.map((ano) => ({
-  ano,
-  total: estados.reduce((sum, e) => sum + e.desmatamento_anual[ano], 0)
-}));
-
-// Detalhe do estado: gráfico de barras + linhas esperado/observado/evitado
-// Desmatamento evitado = Perda esperada - Perda observada
-// Quando positivo → conservação efetiva
-// Quando negativo → pressão maior que o esperado`,
+    id: "03",
+    titulo: "Componente A — Acessibilidade",
+    script: "03_acessibilidade.py",
+    descricao: "Calcula a distância euclidiana de cada pixel à rodovia mais próxima. Reclassifica em 5 classes usando limiares de 4,5 km, 9 km, 13,5 km e 18 km. Quanto mais próximo de rodovias, maior o risco (classe 5 = 0-4,5 km).",
+    entrada: ["grade_mt.tif", "mascara_mt.tif", "rodovias (shapefile)"],
+    saida: ["componente_a.tif"],
+    parametros: "Limiares: 4500, 9000, 13500, 18000 metros | Classes: 1 (>18km) a 5 (0-4,5km)",
   },
   {
-    titulo: "Página de Mato Grosso",
-    arquivo: "client/src/pages/MatoGrosso.tsx",
-    linguagem: "TypeScript/React",
-    descricao: "Análise municipal detalhada do Mato Grosso. Inclui indicadores resumo (desmatamento total, cobertura florestal média, áreas protegidas), ranking dos top 10 municípios com gráfico horizontal, tabela completa com barras de progresso para cobertura florestal, e painel de detalhes por município.",
-    codigo: `// MatoGrosso.tsx — Visão detalhada por municípios do MT
-// 141 municípios com dados oficiais PRODES/TerraBrasilis:
-// - Área total (km²)
-// - Cobertura florestal (%)
-// - Áreas protegidas (km²)
-// - Série de desmatamento (2008-2024)
-// - Desmatamento evitado (esperado vs observado)
-
-// Ranking horizontal com cores por gravidade:
-// Top 3: vermelho-terra (#BF360C)
-// 4-6: dourado-cerrado (#C8A951)
-// 7-10: verde-musgo (#2E7D32)
-
-// Seletor de ano permite comparar diferentes períodos`,
+    id: "04",
+    titulo: "Componente U — Proteção",
+    script: "04_protecao.py",
+    descricao: "Gera máscara binária de áreas protegidas: Terras Indígenas (FUNAI), Unidades de Conservação (CNUC/MMA) e Territórios Quilombolas (INCRA). Pixels dentro de qualquer área protegida recebem valor 1. Na composição final, estes pixels são reclassificados para risco 1 (mínimo).",
+    entrada: ["grade_mt.tif", "mascara_mt.tif", "terras_indigenas", "ucs", "quilombolas"],
+    saida: ["componente_u.tif"],
+    parametros: "Saída binária: 0 = sem proteção, 1 = área protegida",
   },
   {
-    titulo: "Metodologia ACEU",
-    arquivo: "client/src/pages/Metodologia.tsx",
-    linguagem: "TypeScript/React",
-    descricao: "Documentação completa da metodologia Hectares Indicator. Explica os quatro fatores ACEU (Acessibilidade, Cultivabilidade, Extraibilidade, Unprotected), as cinco classes de risco com probabilidades de perda, e as equações de cálculo do desmatamento evitado. Inclui referências bibliográficas.",
-    codigo: `// Metodologia.tsx — Documentação científica
-// Equação do Risco: R = (R_A + R_C + R_E) - R_U
-// 
-// Classes de Risco (Likert/Quintis):
-// 1 - Muito Alto: 90% perda em 20 anos
-// 2 - Alto: 70%
-// 3 - Médio: 50%
-// 4 - Baixo: 30%
-// 5 - Muito Baixo: 10%
-//
-// Perda Esperada = Σ(Área_classe × Prob_classe) / 20
-// Desmatamento Evitado = Perda Esperada - Perda Observada
-//
-// Referências:
-// [1] Tipper & Morel, 2016 — Hectares Indicator V2.0
-// [2] Vendrusculo et al., 2019 — Boletim 46 Embrapa
-// [3] Hansen et al., 2013 — Global Forest Change`,
+    id: "05",
+    titulo: "Componente C — Cultivabilidade",
+    script: "05_cultivabilidade.py",
+    descricao: "Calcula a pressão agropecuária usando dados de uso do solo do MapBiomas. Em janelas de 10x10 pixels (300m x 300m), conta a proporção de pixels de agropecuária (classes 14, 15, 18, 19, 20, 21, 36, 39, 40, 41, 46, 47, 48, 62, 63 do MapBiomas). Reclassifica em 5 classes por quintis.",
+    entrada: ["grade_mt.tif", "mascara_mt.tif", "MapBiomas cobertura (GeoTIFF)"],
+    saida: ["componente_c.tif"],
+    parametros: "Janela: 10x10 pixels (300m) | Classes MapBiomas agropecuárias | Quintis sobre floresta",
   },
   {
-    titulo: "Estrutura de Dados JSON",
-    arquivo: "client/src/data/desmatamento.json",
-    linguagem: "JSON",
-    descricao: "Estrutura do arquivo de dados principal. Contém três seções: 'estados' (27 UFs com série 2008-2024), 'municipios_mt' (141 municípios com dados oficiais PRODES 2008-2024), e 'metadata' (fontes de dados e publicações com URLs).",
-    codigo: `{
-  "estados": [
-    {
-      "nome": "Pará",
-      "sigla": "PA",
-      "bioma_principal": "Amazônia",
-      "desmatamento_acumulado_km2": 268742,
-      "desmatamento_anual": {
-        "2008": 5180,
-        "2009": 4281,
-        ...
-        "2024": 4152
-      },
-      "desmatamento_evitado": {
-        "2011": {
-          "esperado": 4410.3,
-          "observado": 3008,
-          "evitado": 1402.3
-        },
-        ...
-      }
-    },
-    ...
-  ],
-  "municipios_mt": [
-    {
-      "nome": "São Félix do Araguaia",
-      "bioma": "Amazônia/Cerrado",
-      "area_km2": 16832,
-      "cobertura_florestal_pct": 42.3,
-      "area_protegida_km2": 3200,
-      "desmatamento_anual": { ... },
-      "desmatamento_evitado": { ... }
-    },
-    ...
-  ],
-  "metadata": {
-    "fontes_dados": [
-      {
-        "nome": "PRODES — INPE",
-        "descricao": "Monitoramento do desmatamento...",
-        "url": "http://terrabrasilis.dpi.inpe.br/"
-      },
-      ...
-    ],
-    "publicacoes": [
-      {
-        "titulo": "Hectares Indicator Methods...",
-        "autores": "Tipper, R.; Morel, A.",
-        "ano": 2016,
-        "tipo": "Guia Metodológico",
-        "instituicao": "Ecometrica",
-        "url": "https://ecometrica.com/"
-      },
-      ...
-    ]
-  }
-}`,
+    id: "06",
+    titulo: "Componente E — Extraibilidade",
+    script: "06_extraibilidade.py",
+    descricao: "Combina dois fatores: (1) proporção de cobertura florestal com potencial madeireiro (classes 1, 3 do MapBiomas) em janelas 10x10, e (2) presença de processos minerários ativos (SIGMINE/ANM). Reclassifica em 5 classes por quintis.",
+    entrada: ["grade_mt.tif", "mascara_mt.tif", "MapBiomas cobertura", "mineracao (shapefile)"],
+    saida: ["componente_e.tif"],
+    parametros: "Janela: 10x10 pixels | Classes florestais: 1, 3 | Mineração: buffer 1km",
+  },
+  {
+    id: "07",
+    titulo: "Composição ACEU e Classificação de Risco",
+    script: "07_composicao_aceu.py",
+    descricao: "Calcula o risco bruto R = A + C + E (soma dos três componentes, range 3-15). Classifica em 5 classes por quintis sobre pixels de floresta de referência (T0). Após a classificação, pixels em áreas protegidas (componente U = 1) são reclassificados para classe 1 (risco mínimo). Gera também a máscara de floresta de referência usando MapBiomas T0.",
+    entrada: ["componente_a.tif", "componente_c.tif", "componente_e.tif", "componente_u.tif", "MapBiomas T0"],
+    saida: ["risco_aceu.tif", "mascara_floresta.tif"],
+    parametros: "Fórmula: R = A + C + E | Quintis sobre floresta | Áreas protegidas → classe 1",
+  },
+  {
+    id: "07b",
+    titulo: "Desmatamento Evitado (Raster)",
+    script: "07b_desmatamento_evitado_raster.py",
+    descricao: "Cruza o risco ACEU com o desmatamento observado entre T0 e T1 (MapBiomas). Classifica cada pixel de floresta de referência em: (1) floresta mantida esperada, (2) parcialmente evitado, (3) desmatamento evitado, (4) fortemente evitado, (5) perda confirmada, (6) perda inesperada.",
+    entrada: ["risco_aceu.tif", "mascara_floresta.tif", "MapBiomas T0", "MapBiomas T1"],
+    saida: ["desmatamento_evitado.tif"],
+    parametros: "T0: 2008 | T1: 2022 | Classes florestais MapBiomas: 1, 3 | 6 classes de saída",
+  },
+  {
+    id: "08",
+    titulo: "Estatísticas por Município",
+    script: "08_estatisticas.py",
+    descricao: "Calcula estatísticas zonais por município usando o GeoJSON dos municípios do MT. Para cada município: área florestal de referência, floresta atual, desmatamento observado, perda esperada (usando probabilidades alpha_k por classe de risco), desmatamento evitado, e distribuição por classe de risco.",
+    entrada: ["risco_aceu.tif", "desmatamento_evitado.tif", "mascara_floresta.tif", "municipios_mt.geojson"],
+    saida: ["estatisticas_municipios.json", "resumo_municipios.json", "tabelas LaTeX", "CSVs"],
+    parametros: "Probabilidades alpha_k: 0.10, 0.30, 0.50, 0.70, 0.90 | Período: 20 anos",
+  },
+  {
+    id: "09",
+    titulo: "Geração de Tiles (Web Map)",
+    script: "09_gerar_tiles.py",
+    descricao: "Converte os rasters de risco e desmatamento evitado em tiles PNG no esquema XYZ (z/x/y.png) para visualização web com Leaflet. Gera tiles nos zooms 5 a 12, com paleta de cores fixa por classe.",
+    entrada: ["risco_aceu.tif", "desmatamento_evitado.tif"],
+    saida: ["tiles/risco/{z}/{x}/{y}.png", "tiles/evitado/{z}/{x}/{y}.png", "tiles/metadata.json"],
+    parametros: "Zoom: 5-12 | Tile size: 256px | Esquema: XYZ | Total: ~27.900 tiles",
+  },
+  {
+    id: "10",
+    titulo: "Copiar para Frontend",
+    script: "10_copiar_tiles.py",
+    descricao: "Copia os tiles, metadados, GeoJSON dos municípios e estatísticas para a pasta client/public/tiles/ do frontend, onde o Vite os serve como arquivos estáticos.",
+    entrada: ["tiles/", "estatisticas_municipios.json", "municipios_mt.geojson"],
+    saida: ["client/public/tiles/"],
   },
 ];
 
-function CodeBlock({ code, linguagem }: { code: string; linguagem: string }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    toast.success("Código copiado!");
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <div className="relative rounded-lg overflow-hidden" style={{ background: "#1e1e1e" }}>
-      <div className="flex items-center justify-between px-4 py-2" style={{ background: "#2d2d2d", borderBottom: "1px solid #3d3d3d" }}>
-        <span className="text-xs" style={{ color: "#9a958e" }}>{linguagem}</span>
-        <button
-          onClick={handleCopy}
-          className="flex items-center gap-1 text-xs px-2 py-1 rounded transition-all"
-          style={{ color: "#a8d5a2", background: "rgba(46,125,50,0.15)" }}
-        >
-          {copied ? <Check size={12} /> : <Copy size={12} />}
-          {copied ? "Copiado" : "Copiar"}
-        </button>
-      </div>
-      <pre className="p-4 overflow-x-auto text-sm" style={{ color: "#d4d4d4", lineHeight: 1.6, fontFamily: "'Courier New', monospace" }}>
-        <code>{code}</code>
-      </pre>
-    </div>
-  );
-}
-
-function AccordionItem({ section }: { section: CodeSection }) {
-  const [open, setOpen] = useState(false);
-
-  return (
-    <div className="rounded-xl overflow-hidden transition-all" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between p-5 text-left"
-      >
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h3 className="text-base font-semibold" style={{ color: "#2c2417", fontFamily: "'Source Sans 3', sans-serif" }}>
-              {section.titulo}
-            </h3>
-            <span className="text-xs px-2 py-0.5 rounded" style={{ background: "#f4f3ee", color: "#7a7568" }}>
-              {section.linguagem}
-            </span>
-          </div>
-          <p className="text-xs" style={{ color: "#9a958e" }}>{section.arquivo}</p>
-        </div>
-        {open ? <ChevronDown size={18} style={{ color: "#7a7568" }} /> : <ChevronRight size={18} style={{ color: "#7a7568" }} />}
-      </button>
-      {open && (
-        <div className="px-5 pb-5">
-          <p className="text-sm mb-4" style={{ color: "#5a5448", lineHeight: 1.7 }}>
-            {section.descricao}
-          </p>
-          <CodeBlock code={section.codigo} linguagem={section.linguagem} />
-        </div>
-      )}
-    </div>
-  );
-}
+const fonteDados = [
+  { nome: "MapBiomas", desc: "Cobertura e uso do solo (Coleção 8.0)", url: "https://mapbiomas.org", arquivos: "brazil_coverage_2008.tif, brazil_coverage_2022.tif" },
+  { nome: "PRODES/INPE", desc: "Desmatamento na Amazônia Legal", url: "https://terrabrasilis.dpi.inpe.br", arquivos: "Série histórica por município" },
+  { nome: "IBGE", desc: "Limites estaduais e municipais", url: "https://servicodados.ibge.gov.br", arquivos: "limite_mt.geojson, municipios_mt.geojson" },
+  { nome: "SNV/DNIT", desc: "Sistema Nacional de Viação — rodovias", url: "https://servicos.dnit.gov.br/dnitcloud/index.php/s/oTpPRmYs5AAdiNr", arquivos: "snv_*.shp" },
+  { nome: "FUNAI", desc: "Terras Indígenas homologadas", url: "https://www.gov.br/funai", arquivos: "tis_poligonais.shp" },
+  { nome: "MMA/CNUC", desc: "Cadastro Nacional de Unidades de Conservação", url: "https://www.gov.br/icmbio", arquivos: "cnuc_2025_03.shp" },
+  { nome: "SIGMINE/ANM", desc: "Processos minerários ativos", url: "https://geo.anm.gov.br/portal/apps/webappviewer/index.html", arquivos: "MT.shp" },
+];
 
 export default function CodigoProtegido() {
   const [autenticado, setAutenticado] = useState(false);
   const [senha, setSenha] = useState("");
-  const [erro, setErro] = useState(false);
+  const [expandedStep, setExpandedStep] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = () => {
     if (senha === SENHA_CORRETA) {
       setAutenticado(true);
-      setErro(false);
-      toast.success("Acesso liberado!");
     } else {
-      setErro(true);
-      toast.error("Senha incorreta.");
+      toast.error("Senha incorreta");
     }
   };
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast.success("Copiado!");
+  };
+
+  const comandoExecucao = `cd geoprocessamento
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+pip install -r requirements.txt
+python run_all.py`;
 
   if (!autenticado) {
     return (
       <Layout>
         <section className="py-20">
-          <div className="container max-w-md">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-4" style={{ background: "rgba(46,125,50,0.1)" }}>
-                <Lock size={28} style={{ color: "#2E7D32" }} />
-              </div>
-              <h1 className="text-2xl md:text-3xl font-bold mb-3" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
-                Área Protegida
+          <div className="container max-w-md mx-auto text-center">
+            <div className="rounded-xl p-8" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
+              <Lock size={40} className="mx-auto mb-4" style={{ color: "#2E7D32" }} />
+              <h1 className="text-2xl font-bold mb-2" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
+                Documentação Técnica
               </h1>
-              <p className="text-sm" style={{ color: "#7a7568", lineHeight: 1.7 }}>
-                Esta seção contém o código-fonte documentado do sistema. Insira a senha para acessar.
+              <p className="text-sm mb-6" style={{ color: "#7a7568" }}>
+                Acesso restrito. Insira a senha para visualizar a documentação do pipeline de geoprocessamento.
               </p>
+              <div className="flex gap-2">
+                <input
+                  type="password"
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleLogin()}
+                  placeholder="Senha"
+                  className="flex-1 px-4 py-2.5 rounded-lg text-sm"
+                  style={{ background: "#f9f8f5", border: "1px solid #e8e5dd", color: "#2c2417" }}
+                />
+                <button
+                  onClick={handleLogin}
+                  className="px-5 py-2.5 rounded-lg text-sm font-medium"
+                  style={{ background: "#2E7D32", color: "#fff" }}
+                >
+                  Entrar
+                </button>
+              </div>
             </div>
-            <form onSubmit={handleLogin} className="rounded-xl p-6" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
-              <label className="block text-sm font-medium mb-2" style={{ color: "#5a5448" }}>Senha de acesso</label>
-              <input
-                type="password"
-                value={senha}
-                onChange={(e) => { setSenha(e.target.value); setErro(false); }}
-                placeholder="Digite a senha..."
-                className="w-full px-4 py-3 rounded-lg text-sm mb-4"
-                style={{
-                  background: "#fafaf5",
-                  border: `1px solid ${erro ? "#BF360C" : "#e8e5dd"}`,
-                  color: "#2c2417",
-                  outline: "none",
-                }}
-                autoFocus
-              />
-              {erro && (
-                <p className="text-xs mb-3" style={{ color: "#BF360C" }}>Senha incorreta. Tente novamente.</p>
-              )}
-              <button
-                type="submit"
-                className="w-full py-3 rounded-lg text-sm font-semibold transition-all"
-                style={{ background: "#2E7D32", color: "#fff" }}
-              >
-                Acessar Código
-              </button>
-            </form>
           </div>
         </section>
       </Layout>
@@ -486,59 +196,176 @@ export default function CodigoProtegido() {
 
   return (
     <Layout>
-      {/* Header autenticado */}
-      <section className="py-12" style={{ background: "#f4f3ee" }}>
-        <div className="container max-w-5xl">
+      {/* Header */}
+      <section className="py-10" style={{ background: "#f9f8f5", borderBottom: "1px solid #e8e5dd" }}>
+        <div className="container">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: "rgba(46,125,50,0.1)" }}>
-              <Unlock size={20} style={{ color: "#2E7D32" }} />
-            </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
-                Código-Fonte Documentado
-              </h1>
-              <p className="text-sm" style={{ color: "#7a7568" }}>
-                Acesso autenticado — Edilvando Pereira Eufrazio
-              </p>
-            </div>
+            <Unlock size={20} style={{ color: "#2E7D32" }} />
+            <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ background: "rgba(46,125,50,0.08)", color: "#2E7D32" }}>
+              Acesso autorizado
+            </span>
           </div>
-          <p className="text-base" style={{ color: "#5a5448", fontFamily: "'Source Serif 4', serif", lineHeight: 1.8, maxWidth: "700px" }}>
-            Abaixo está o código-fonte documentado do sistema, organizado por módulo. Cada seção inclui uma descrição funcional e o código com comentários explicativos. O sistema foi desenvolvido em React com TypeScript, utilizando Tailwind CSS para estilização e Recharts para visualizações.
+          <h1 className="text-3xl font-bold mb-2" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
+            Pipeline de Geoprocessamento — Desmatamento Evitado
+          </h1>
+          <p className="text-base" style={{ color: "#7a7568", maxWidth: "700px" }}>
+            Documentação técnica do pipeline de cálculo do risco de desmatamento (modelo ACEU) e desmatamento evitado para o estado do Mato Grosso, baseado na metodologia Hectares Indicator (Ecometrica, 2018; Vendrusculo et al., 2019).
           </p>
         </div>
       </section>
 
-      {/* Stack tecnológica */}
-      <section className="py-10">
-        <div className="container max-w-5xl">
-          <h2 className="text-xl font-bold mb-6" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
-            Stack Tecnológica
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
-            {[
-              { nome: "React 19", desc: "Interface de usuário" },
-              { nome: "TypeScript", desc: "Tipagem estática" },
-              { nome: "Tailwind CSS 4", desc: "Estilização" },
-              { nome: "Recharts", desc: "Gráficos interativos" },
-              { nome: "Wouter", desc: "Roteamento" },
-              { nome: "Lucide Icons", desc: "Ícones" },
-              { nome: "Sonner", desc: "Notificações" },
-              { nome: "Python 3", desc: "Geração de dados" },
-            ].map((tech) => (
-              <div key={tech.nome} className="rounded-lg p-3" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
-                <p className="text-sm font-semibold" style={{ color: "#2c2417" }}>{tech.nome}</p>
-                <p className="text-xs" style={{ color: "#9a958e" }}>{tech.desc}</p>
+      {/* Como executar */}
+      <section className="py-8">
+        <div className="container">
+          <div className="rounded-xl overflow-hidden" style={{ background: "#1a1a2e", border: "1px solid #2d2d44" }}>
+            <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "1px solid #2d2d44" }}>
+              <div className="flex items-center gap-2">
+                <Terminal size={16} style={{ color: "#a8d5a2" }} />
+                <span className="text-sm font-medium" style={{ color: "#e0e0e0" }}>Como executar o pipeline</span>
               </div>
-            ))}
+              <button
+                onClick={() => handleCopy(comandoExecucao)}
+                className="flex items-center gap-1 px-2 py-1 rounded text-xs"
+                style={{ background: "rgba(255,255,255,0.05)", color: "#a8d5a2" }}
+              >
+                {copied ? <Check size={12} /> : <Copy size={12} />}
+                {copied ? "Copiado" : "Copiar"}
+              </button>
+            </div>
+            <pre className="px-5 py-4 text-sm overflow-x-auto" style={{ color: "#e0e0e0", fontFamily: "'JetBrains Mono', monospace" }}>
+              <code>{comandoExecucao}</code>
+            </pre>
           </div>
+          <p className="text-xs mt-3" style={{ color: "#9a958e" }}>
+            Requisitos: Python 3.10+, GDAL, rasterio, geopandas, shapely, numpy. Tempo estimado: 15-25 min (Apple M4).
+          </p>
+        </div>
+      </section>
 
+      {/* Etapas do pipeline */}
+      <section className="py-8">
+        <div className="container">
           <h2 className="text-xl font-bold mb-6" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
-            Módulos do Sistema
+            Etapas do Pipeline
           </h2>
-          <div className="space-y-3">
-            {secoesCodigo.map((section, i) => (
-              <AccordionItem key={i} section={section} />
-            ))}
+          <div className="flex flex-col gap-3">
+            {etapasPipeline.map((step) => {
+              const isExpanded = expandedStep === step.id;
+              return (
+                <div key={step.id} className="rounded-xl overflow-hidden" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
+                  <button
+                    onClick={() => setExpandedStep(isExpanded ? null : step.id)}
+                    className="w-full px-5 py-4 flex items-center gap-4 text-left"
+                  >
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0" style={{ background: "rgba(46,125,50,0.08)" }}>
+                      <span className="text-xs font-bold" style={{ color: "#2E7D32" }}>{step.id}</span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold" style={{ color: "#2c2417" }}>{step.titulo}</h3>
+                      <p className="text-xs" style={{ color: "#9a958e" }}>{step.script}</p>
+                    </div>
+                    {isExpanded ? <ChevronDown size={16} style={{ color: "#7a7568" }} /> : <ChevronRight size={16} style={{ color: "#7a7568" }} />}
+                  </button>
+                  {isExpanded && (
+                    <div className="px-5 pb-5" style={{ borderTop: "1px solid #f0ede7" }}>
+                      <p className="text-sm mt-4 mb-4" style={{ color: "#5a5448" }}>{step.descricao}</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <h4 className="text-xs font-semibold mb-2 flex items-center gap-1" style={{ color: "#7a7568" }}>
+                            <Database size={12} /> Entrada
+                          </h4>
+                          <ul className="text-xs space-y-1" style={{ color: "#5a5448" }}>
+                            {step.entrada.map((e, i) => <li key={i} className="pl-3" style={{ borderLeft: "2px solid #e8e5dd" }}>{e}</li>)}
+                          </ul>
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-semibold mb-2 flex items-center gap-1" style={{ color: "#7a7568" }}>
+                            <Layers size={12} /> Saída
+                          </h4>
+                          <ul className="text-xs space-y-1" style={{ color: "#5a5448" }}>
+                            {step.saida.map((s, i) => <li key={i} className="pl-3" style={{ borderLeft: "2px solid #2E7D32" }}>{s}</li>)}
+                          </ul>
+                        </div>
+                      </div>
+                      {step.parametros && (
+                        <div className="mt-4 px-3 py-2 rounded-lg" style={{ background: "#f9f8f5", border: "1px solid #e8e5dd" }}>
+                          <h4 className="text-xs font-semibold mb-1 flex items-center gap-1" style={{ color: "#7a7568" }}>
+                            <Calculator size={12} /> Parâmetros
+                          </h4>
+                          <p className="text-xs" style={{ color: "#5a5448" }}>{step.parametros}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Fontes de dados */}
+      <section className="py-8" style={{ background: "#f9f8f5" }}>
+        <div className="container">
+          <h2 className="text-xl font-bold mb-6" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
+            Fontes de Dados
+          </h2>
+          <div className="rounded-xl overflow-hidden" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr style={{ background: "#f9f8f5", borderBottom: "1px solid #e8e5dd" }}>
+                    <th className="text-left px-4 py-3 font-semibold" style={{ color: "#5a5448" }}>Fonte</th>
+                    <th className="text-left px-4 py-3 font-semibold" style={{ color: "#5a5448" }}>Descrição</th>
+                    <th className="text-left px-4 py-3 font-semibold" style={{ color: "#5a5448" }}>Arquivos</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {fonteDados.map((f) => (
+                    <tr key={f.nome} style={{ borderBottom: "1px solid #f0ede7" }}>
+                      <td className="px-4 py-3 font-medium" style={{ color: "#2c2417" }}>
+                        <a href={f.url} target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: "#2E7D32" }}>
+                          {f.nome}
+                        </a>
+                      </td>
+                      <td className="px-4 py-3" style={{ color: "#5a5448" }}>{f.desc}</td>
+                      <td className="px-4 py-3 text-xs font-mono" style={{ color: "#7a7568" }}>{f.arquivos}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Referências */}
+      <section className="py-8">
+        <div className="container">
+          <h2 className="text-xl font-bold mb-4" style={{ color: "#2c2417", fontFamily: "'Merriweather', serif" }}>
+            Referências Metodológicas
+          </h2>
+          <div className="flex flex-col gap-3">
+            <div className="rounded-lg p-4" style={{ background: "#f9f8f5", border: "1px solid #e8e5dd" }}>
+              <p className="text-sm" style={{ color: "#5a5448" }}>
+                ECOMETRICA. Hectares Indicator: Methods and Guidance V2.0. Edinburgh, 2018. Disponível em: ecometrica.com
+              </p>
+            </div>
+            <div className="rounded-lg p-4" style={{ background: "#f9f8f5", border: "1px solid #e8e5dd" }}>
+              <p className="text-sm" style={{ color: "#5a5448" }}>
+                VENDRUSCULO, L. G. et al. Indicador de Hectares: uma métrica para certificação de produtos agropecuários livres de desmatamento. Sinop: Embrapa Agrossilvipastoril, 2019. (Comunicado Técnico, 7).
+              </p>
+            </div>
+            <div className="rounded-lg p-4" style={{ background: "#f9f8f5", border: "1px solid #e8e5dd" }}>
+              <p className="text-sm" style={{ color: "#5a5448" }}>
+                TIPPER, R.; MOREL, A. Hectares Indicator: a risk-based approach to quantifying avoided deforestation. Ecometrica, 2016.
+              </p>
+            </div>
+            <div className="rounded-lg p-4" style={{ background: "#f9f8f5", border: "1px solid #e8e5dd" }}>
+              <p className="text-sm" style={{ color: "#5a5448" }}>
+                MAPBIOMAS. Projeto MapBiomas — Coleção 8.0 da Série Anual de Mapas de Cobertura e Uso da Terra do Brasil. 2023. Disponível em: mapbiomas.org
+              </p>
+            </div>
           </div>
         </div>
       </section>
