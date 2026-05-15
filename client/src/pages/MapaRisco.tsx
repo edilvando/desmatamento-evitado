@@ -6,6 +6,13 @@ import Layout from "@/components/Layout";
 import RasterMap from "@/components/RasterMap";
 import { useState, useEffect, useMemo } from "react";
 import { Layers, Info, ZoomIn, ShieldCheck, BarChart3, X } from "lucide-react";
+import estatisticasLocal from "@/data/estatisticas_municipios.json";
+
+// Lookup estático de código IBGE -> nome do município
+const NOMES_LOOKUP: Record<string, string> = {};
+(estatisticasLocal as any[]).forEach((m) => {
+  NOMES_LOOKUP[String(m.cod_municipio)] = m.nome_municipio;
+});
 
 interface MunicipioStats {
   cod_municipio: string;
@@ -80,7 +87,7 @@ function PainelEstatisticas({
     <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-md">
       <div className="flex items-start justify-between mb-3">
         <div>
-          <h3 className="font-medium text-gray-800">{stats.nome_municipio}</h3>
+          <h3 className="font-medium text-gray-800">{stats.nome_municipio || NOMES_LOOKUP[String(stats.cod_municipio)] || stats.cod_municipio}</h3>
           <p className="text-xs text-gray-400">IBGE: {stats.cod_municipio}</p>
         </div>
         <button
@@ -183,14 +190,34 @@ export default function MapaRisco() {
 
   // Quando um município é selecionado, buscar suas estatísticas
   useEffect(() => {
-    if (!selectedMunicipio || allStats.length === 0) {
+    if (!selectedMunicipio) {
       setMunicipioStats(null);
       return;
     }
+    // Buscar primeiro no JSON remoto (tiles), depois no local importado
     const found = allStats.find(
-      (s) => s.cod_municipio === selectedMunicipio.codigo
+      (s) => String(s.cod_municipio) === String(selectedMunicipio.codigo)
     );
-    setMunicipioStats(found || null);
+    if (found) {
+      // Garantir que nome_municipio está preenchido
+      if (!found.nome_municipio) {
+        found.nome_municipio = NOMES_LOOKUP[String(found.cod_municipio)] || selectedMunicipio.nome || found.cod_municipio;
+      }
+      setMunicipioStats(found);
+    } else {
+      // Fallback: buscar no JSON local importado
+      const localFound = (estatisticasLocal as any[]).find(
+        (s) => String(s.cod_municipio) === String(selectedMunicipio.codigo)
+      );
+      if (localFound) {
+        if (!localFound.nome_municipio) {
+          localFound.nome_municipio = NOMES_LOOKUP[String(localFound.cod_municipio)] || selectedMunicipio.nome || localFound.cod_municipio;
+        }
+        setMunicipioStats(localFound as MunicipioStats);
+      } else {
+        setMunicipioStats(null);
+      }
+    }
   }, [selectedMunicipio, allStats]);
 
   return (
@@ -256,7 +283,7 @@ export default function MapaRisco() {
                 <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="font-medium text-gray-800">
-                      {selectedMunicipio.nome}
+                      {NOMES_LOOKUP[String(selectedMunicipio.codigo)] || selectedMunicipio.nome}
                     </h3>
                     <button
                       onClick={() => setSelectedMunicipio(null)}
