@@ -9,7 +9,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Legend, Cell, AreaChart, Area, PieChart, Pie
 } from "recharts";
-import { Search, ArrowUpDown, TreePine, Shield, Leaf, X, TrendingDown, TrendingUp, Filter, Calendar, MapPin } from "lucide-react";
+import { Search, ArrowUpDown, TreePine, Shield, Leaf, X, TrendingDown, TrendingUp, Filter, Calendar, MapPin, Download } from "lucide-react";
 import desmatamentoData from "@/data/desmatamento.json";
 import estatisticasACEU from "@/data/estatisticas_municipios.json";
 
@@ -141,6 +141,37 @@ export default function MatoGrosso() {
   const toggleSort = (col: "nome" | "ano" | "evitado") => {
     if (sortBy === col) setSortDir(sortDir === "asc" ? "desc" : "asc");
     else { setSortBy(col); setSortDir("desc"); }
+  };
+
+  const downloadCSV = () => {
+    const sep = ";";
+    const header = [
+      "Código IBGE", "Município", "Área Total (ha)", "Floresta Referência (ha)",
+      "Floresta Atual (ha)", "Desmatado (ha)", "Perda Esperada (ha)",
+      "Desmatamento Evitado (ha)", "Taxa Proteção (%)",
+      "Risco 1 (ha)", "Risco 2 (ha)", "Risco 3 (ha)", "Risco 4 (ha)", "Risco 5 (ha)"
+    ].join(sep);
+    const rows = estatisticasACEU.map((m) =>
+      [
+        m.cod_municipio, m.nome_municipio,
+        m.area_total_ha, m.floresta_referencia_ha, m.floresta_atual_ha,
+        m.desmatado_ha, m.perda_esperada_ha, m.desmatamento_evitado_ha,
+        m.taxa_protecao_pct,
+        m.classe_risco_1_ha, m.classe_risco_2_ha, m.classe_risco_3_ha,
+        m.classe_risco_4_ha, m.classe_risco_5_ha,
+      ]
+        .map((v) => typeof v === "number" ? String(v).replace(".", ",") : v)
+        .join(sep)
+    );
+    const bom = "\uFEFF";
+    const csv = bom + [header, ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "estatisticas_municipios_mt.csv";
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const handleSelectMunicipio = (nome: string) => {
@@ -473,7 +504,7 @@ export default function MatoGrosso() {
       {/* Tabela de municípios */}
       <section className="py-8">
         <div className="container">
-          <div className="flex flex-wrap gap-3 mb-6 items-center">
+          <div className="flex flex-wrap gap-3 mb-6 items-center justify-between">
             <div className="relative flex-1 min-w-[200px] max-w-sm">
               <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#9a958e" }} />
               <input
@@ -485,6 +516,16 @@ export default function MatoGrosso() {
                 style={{ background: "#fff", border: "1px solid #e8e5dd", color: "#2c2417" }}
               />
             </div>
+            <button
+              onClick={downloadCSV}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all"
+              style={{ background: "#2E7D32", color: "#fff" }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#1B5E20")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "#2E7D32")}
+            >
+              <Download size={16} />
+              Baixar CSV
+            </button>
           </div>
 
           <div className="rounded-xl overflow-hidden" style={{ background: "#fff", border: "1px solid #e8e5dd" }}>
